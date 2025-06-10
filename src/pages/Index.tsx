@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Calendar, Heart, Baby, BookOpen, Settings, Plus, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +26,7 @@ const Index = () => {
           cycleDay={cycleDay}
           nextPeriod={nextPeriod}
           fertileWindow={fertileWindow}
+          onTabChange={setActiveTab}
         />;
       case 'period':
         return <PeriodTracker />;
@@ -44,6 +44,7 @@ const Index = () => {
           cycleDay={cycleDay}
           nextPeriod={nextPeriod}
           fertileWindow={fertileWindow}
+          onTabChange={setActiveTab}
         />;
     }
   };
@@ -80,7 +81,7 @@ const Index = () => {
   );
 };
 
-const Dashboard = ({ pregnancyMode, cycleDay, nextPeriod, fertileWindow }) => {
+const Dashboard = ({ pregnancyMode, cycleDay, nextPeriod, fertileWindow, onTabChange }) => {
   const progressPercentage = (cycleDay / 28) * 100;
   const isInFertileWindow = cycleDay >= fertileWindow.start && cycleDay <= fertileWindow.end;
 
@@ -191,19 +192,35 @@ const Dashboard = ({ pregnancyMode, cycleDay, nextPeriod, fertileWindow }) => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline" className="h-20 flex flex-col">
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col"
+                onClick={() => onTabChange('period')}
+              >
                 <Calendar className="w-6 h-6 mb-2" />
                 Log Period
               </Button>
-              <Button variant="outline" className="h-20 flex flex-col">
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col"
+                onClick={() => onTabChange('symptoms')}
+              >
                 <Heart className="w-6 h-6 mb-2" />
                 Track Symptoms
               </Button>
-              <Button variant="outline" className="h-20 flex flex-col">
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col"
+                onClick={() => onTabChange('symptoms')}
+              >
                 <TrendingUp className="w-6 h-6 mb-2" />
                 Mood Check
               </Button>
-              <Button variant="outline" className="h-20 flex flex-col">
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col"
+                onClick={() => onTabChange('insights')}
+              >
                 <BookOpen className="w-6 h-6 mb-2" />
                 Learn More
               </Button>
