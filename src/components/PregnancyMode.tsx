@@ -1,68 +1,41 @@
 
-import { Baby, Calendar, Heart, TrendingUp, AlertCircle } from 'lucide-react';
+import { useState } from 'react';
+import { Baby, Calendar, Heart, TrendingUp, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useState } from 'react';
 
 const PregnancyMode = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [symptoms, setSymptoms] = useState([]);
-  const [notes, setNotes] = useState('');
-  
-  // Mock pregnancy data
-  const pregnancyWeek = 12;
-  const dueDate = '2024-12-15';
-  const trimester = pregnancyWeek <= 12 ? 1 : pregnancyWeek <= 26 ? 2 : 3;
-  const progressPercentage = (pregnancyWeek / 40) * 100;
+  const [currentWeek, setCurrentWeek] = useState(20);
+  const [dueDate, setDueDate] = useState('2024-07-15');
+  const [symptoms, setSymptoms] = useState('');
+  const [appointments, setAppointments] = useState([
+    { date: '2024-01-15', type: 'Ultrasound', notes: 'Everything looks great!' },
+    { date: '2024-01-01', type: 'Regular Checkup', notes: 'Blood pressure normal' },
+  ]);
 
-  const pregnancySymptoms = [
-    'Morning sickness', 'Fatigue', 'Breast tenderness', 'Food cravings',
-    'Food aversions', 'Heartburn', 'Frequent urination', 'Back pain',
-    'Constipation', 'Mood swings', 'Shortness of breath', 'Swelling'
-  ];
+  const progressPercentage = (currentWeek / 40) * 100;
+  const weeksRemaining = Math.max(0, 40 - currentWeek);
+  const daysRemaining = Math.max(0, weeksRemaining * 7);
 
-  const trimesterInfo = {
-    1: {
-      title: 'First Trimester',
-      description: 'Your baby is rapidly developing. Focus on taking prenatal vitamins and avoiding harmful substances.',
-      color: 'from-pink-100 to-pink-200',
-      textColor: 'text-pink-600'
-    },
-    2: {
-      title: 'Second Trimester',
-      description: 'Often called the "golden period." You may feel more energetic and experience fewer symptoms.',
-      color: 'from-purple-100 to-purple-200',
-      textColor: 'text-purple-600'
-    },
-    3: {
-      title: 'Third Trimester',
-      description: 'Final stretch! Your baby is preparing for birth. Focus on birth preparation and rest.',
-      color: 'from-teal-100 to-teal-200',
-      textColor: 'text-teal-600'
+  const handleLogSymptom = () => {
+    if (symptoms.trim()) {
+      const newEntry = {
+        date: new Date().toISOString().split('T')[0],
+        symptom: symptoms,
+        week: currentWeek
+      };
+      setSymptoms('');
     }
   };
 
-  const milestones = [
-    { week: 4, title: 'Implantation', completed: true },
-    { week: 8, title: 'First heartbeat', completed: true },
-    { week: 12, title: 'End of first trimester', completed: pregnancyWeek >= 12 },
-    { week: 16, title: 'Gender reveal possible', completed: pregnancyWeek >= 16 },
-    { week: 20, title: 'Anatomy scan', completed: pregnancyWeek >= 20 },
-    { week: 24, title: 'Viability milestone', completed: pregnancyWeek >= 24 },
-    { week: 28, title: 'Third trimester begins', completed: pregnancyWeek >= 28 },
-    { week: 36, title: 'Full term approaching', completed: pregnancyWeek >= 36 },
-  ];
-
-  const currentTrimester = trimesterInfo[trimester];
-
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className={`bg-gradient-to-br ${currentTrimester.color} border-pink-200`}>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card className="bg-gradient-to-br from-pink-100 to-pink-200 border-pink-200">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center">
               <Baby className="w-5 h-5 mr-2 text-pink-600" />
@@ -70,21 +43,24 @@ const PregnancyMode = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center space-y-4">
+            <div className="space-y-4">
               <div>
-                <p className="text-3xl font-bold text-pink-600">{pregnancyWeek}</p>
-                <p className="text-sm text-muted-foreground">Weeks pregnant</p>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Progress</span>
-                  <span>{progressPercentage.toFixed(0)}%</span>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium">Week {currentWeek} of 40</span>
+                  <span className="text-sm text-muted-foreground">{progressPercentage.toFixed(0)}%</span>
                 </div>
-                <Progress value={progressPercentage} className="h-3" />
+                <Progress value={progressPercentage} className="h-2" />
               </div>
-              <Badge className={`${currentTrimester.textColor} bg-white`}>
-                {currentTrimester.title}
-              </Badge>
+              <div className="grid grid-cols-2 gap-4 text-center">
+                <div>
+                  <p className="text-2xl font-bold text-pink-600">{weeksRemaining}</p>
+                  <p className="text-xs text-muted-foreground">Weeks remaining</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-purple-600">{daysRemaining}</p>
+                  <p className="text-xs text-muted-foreground">Days remaining</p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -97,22 +73,18 @@ const PregnancyMode = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center space-y-4">
-              <div>
-                <p className="text-lg font-bold text-purple-600">
-                  {new Date(dueDate).toLocaleDateString('en-US', { 
-                    month: 'long', 
-                    day: 'numeric', 
-                    year: 'numeric' 
-                  })}
-                </p>
-                <p className="text-sm text-muted-foreground">Expected due date</p>
+            <div className="space-y-4">
+              <div className="text-center">
+                <p className="text-lg font-bold text-purple-600">{new Date(dueDate).toLocaleDateString()}</p>
+                <p className="text-sm text-muted-foreground">Expected delivery</p>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-purple-600">
-                  {Math.ceil((new Date(dueDate) - new Date()) / (1000 * 60 * 60 * 24))}
-                </p>
-                <p className="text-sm text-muted-foreground">Days remaining</p>
+              <div className="grid grid-cols-1 gap-4 text-center">
+                <div className="p-3 bg-purple-50 rounded-lg">
+                  <p className="text-sm font-medium">Trimester</p>
+                  <p className="text-lg font-bold text-purple-600">
+                    {currentWeek <= 12 ? 'First' : currentWeek <= 27 ? 'Second' : 'Third'}
+                  </p>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -126,15 +98,23 @@ const PregnancyMode = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center space-y-4">
-              <div className="text-4xl">🫐</div>
-              <div>
-                <p className="font-medium text-teal-600">Size of a lime</p>
-                <p className="text-sm text-muted-foreground">About 2.1 inches</p>
+            <div className="space-y-4">
+              <div className="text-center">
+                <p className="text-sm font-medium">Size this week</p>
+                <p className="text-lg font-bold text-teal-600">
+                  {currentWeek < 20 ? 'Banana' : currentWeek < 30 ? 'Cauliflower' : 'Cabbage'}
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Your baby's reflexes are developing and they can make a fist!
-              </p>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Length</span>
+                  <span className="font-medium">~{Math.floor(currentWeek * 1.2)}cm</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Weight</span>
+                  <span className="font-medium">~{Math.floor(currentWeek * 15)}g</span>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -144,48 +124,26 @@ const PregnancyMode = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <TrendingUp className="w-5 h-5 mr-2 text-pink-600" />
-              Log Pregnancy Symptoms
+              <Plus className="w-5 h-5 mr-2 text-pink-600" />
+              Log Symptoms
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Date</label>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Symptoms</label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select symptoms" />
-                </SelectTrigger>
-                <SelectContent>
-                  {pregnancySymptoms.map((symptom) => (
-                    <SelectItem key={symptom} value={symptom}>
-                      {symptom}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Notes</label>
+              <label className="block text-sm font-medium mb-2">Today's Symptoms</label>
               <Textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="How are you feeling today?"
+                value={symptoms}
+                onChange={(e) => setSymptoms(e.target.value)}
+                placeholder="How are you feeling today? Any new symptoms?"
                 className="h-20"
               />
             </div>
 
-            <Button className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600">
+            <Button 
+              onClick={handleLogSymptom}
+              className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+              disabled={!symptoms.trim()}
+            >
               Log Symptoms
             </Button>
           </CardContent>
@@ -193,35 +151,31 @@ const PregnancyMode = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Pregnancy Milestones</CardTitle>
+            <CardTitle className="flex items-center">
+              <TrendingUp className="w-5 h-5 mr-2 text-purple-600" />
+              Weekly Insights
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {milestones.map((milestone, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center p-3 rounded-lg ${
-                    milestone.completed
-                      ? 'bg-green-50 border border-green-200'
-                      : 'bg-gray-50 border border-gray-200'
-                  }`}
-                >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
-                    milestone.completed
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-300 text-gray-600'
-                  }`}>
-                    {milestone.completed ? '✓' : milestone.week}
-                  </div>
-                  <div className="flex-1">
-                    <p className={`font-medium ${
-                      milestone.completed ? 'text-green-800' : 'text-gray-600'
-                    }`}>
-                      Week {milestone.week}: {milestone.title}
-                    </p>
-                  </div>
-                </div>
-              ))}
+            <div className="space-y-4">
+              <div className="p-4 bg-pink-50 rounded-lg border border-pink-200">
+                <h4 className="font-medium text-pink-800">This Week</h4>
+                <p className="text-sm text-pink-600 mt-1">
+                  Your baby's organs are developing rapidly. You might notice increased appetite.
+                </p>
+              </div>
+              <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                <h4 className="font-medium text-purple-800">Health Tip</h4>
+                <p className="text-sm text-purple-600 mt-1">
+                  Stay hydrated and consider prenatal yoga for better sleep and reduced stress.
+                </p>
+              </div>
+              <div className="p-4 bg-teal-50 rounded-lg border border-teal-200">
+                <h4 className="font-medium text-teal-800">Next Appointment</h4>
+                <p className="text-sm text-teal-600 mt-1">
+                  Remember to schedule your next ultrasound if you haven't already.
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -230,48 +184,26 @@ const PregnancyMode = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <AlertCircle className="w-5 h-5 mr-2 text-purple-600" />
-            This Week's Information
+            <Calendar className="w-5 h-5 mr-2 text-pink-600" />
+            Appointment History
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="p-4 bg-pink-50 rounded-lg border border-pink-200">
-                <h4 className="font-medium text-pink-800 mb-2">Baby's Development</h4>
-                <p className="text-sm text-pink-600">
-                  Your baby's reflexes are starting to develop. They can curl their fingers and toes, 
-                  and may even suck their thumb. The kidneys are now producing urine.
-                </p>
+          <div className="space-y-3">
+            {appointments.map((appointment, index) => (
+              <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="w-4 h-4 text-gray-500" />
+                    <span className="font-medium">{new Date(appointment.date).toLocaleDateString()}</span>
+                  </div>
+                  <Badge className="bg-purple-200 text-purple-800">
+                    {appointment.type}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">{appointment.notes}</p>
               </div>
-              <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                <h4 className="font-medium text-purple-800 mb-2">Your Body</h4>
-                <p className="text-sm text-purple-600">
-                  You may notice your bump starting to show. Morning sickness might be improving, 
-                  and you may feel more energetic as you enter the second trimester.
-                </p>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div className="p-4 bg-teal-50 rounded-lg border border-teal-200">
-                <h4 className="font-medium text-teal-800 mb-2">Recommended Actions</h4>
-                <ul className="text-sm text-teal-600 space-y-1">
-                  <li>• Continue taking prenatal vitamins</li>
-                  <li>• Schedule your 12-week scan if not done</li>
-                  <li>• Consider telling family and friends</li>
-                  <li>• Start thinking about maternity clothes</li>
-                </ul>
-              </div>
-              <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                <h4 className="font-medium text-yellow-800 mb-2">Things to Avoid</h4>
-                <ul className="text-sm text-yellow-600 space-y-1">
-                  <li>• High-mercury fish</li>
-                  <li>• Raw or undercooked meats</li>
-                  <li>• Unpasteurized dairy products</li>
-                  <li>• Alcohol and smoking</li>
-                </ul>
-              </div>
-            </div>
+            ))}
           </div>
         </CardContent>
       </Card>
