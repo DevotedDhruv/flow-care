@@ -13,8 +13,11 @@ import { useAuth } from '@/hooks/useAuth';
 interface PeriodEntry {
   id: string;
   date: string;
-  flow_intensity: 'spotting' | 'light' | 'medium' | 'heavy';
-  notes?: string;
+  flow_intensity: string;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
 }
 
 const PeriodTracker = () => {
@@ -71,7 +74,7 @@ const PeriodTracker = () => {
         .upsert({
           user_id: user.id,
           date: selectedDate,
-          flow_intensity: flowIntensity as 'spotting' | 'light' | 'medium' | 'heavy',
+          flow_intensity: flowIntensity,
           notes: notes || null,
         })
         .select()
@@ -180,7 +183,7 @@ const PeriodTracker = () => {
                   <div 
                     key={entry.id}
                     className={`flex-1 h-6 rounded flex items-center justify-center text-xs ${
-                      flowColors[entry.flow_intensity] || 'bg-gray-200'
+                      flowColors[entry.flow_intensity as keyof typeof flowColors] || 'bg-gray-200'
                     }`}
                   >
                     {entry.flow_intensity.charAt(0).toUpperCase()}
@@ -218,7 +221,7 @@ const PeriodTracker = () => {
                       <Calendar className="w-4 h-4 text-gray-500" />
                       <span className="font-medium">{new Date(entry.date).toLocaleDateString()}</span>
                     </div>
-                    <Badge className={flowColors[entry.flow_intensity]}>
+                    <Badge className={flowColors[entry.flow_intensity as keyof typeof flowColors] || 'bg-gray-200'}>
                       {entry.flow_intensity.charAt(0).toUpperCase() + entry.flow_intensity.slice(1)}
                     </Badge>
                   </div>
