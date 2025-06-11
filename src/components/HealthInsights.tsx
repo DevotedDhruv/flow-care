@@ -75,7 +75,7 @@ const HealthInsights = () => {
     }
   ];
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'good':
         return 'bg-green-100 text-green-800 border-green-200';

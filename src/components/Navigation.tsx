@@ -1,5 +1,5 @@
 
-import { Calendar, TrendingUp } from 'lucide-react';
+import { Calendar, TrendingUp, Heart, Settings, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -12,6 +12,9 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: TrendingUp },
     { id: 'period', label: 'Period Tracker', icon: Calendar },
+    { id: 'insights', label: 'Health Insights', icon: Heart },
+    { id: 'symptoms', label: 'Symptoms', icon: BarChart3 },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (

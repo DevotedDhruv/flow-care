@@ -8,6 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/hooks/useAuth';
 import PeriodTracker from '@/components/PeriodTracker';
+import HealthInsights from '@/components/HealthInsights';
+import SymptomsChart from '@/components/SymptomsChart';
+import Settings from '@/components/Settings';
+import Navigation from '@/components/Navigation';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -37,6 +41,12 @@ const Index = () => {
         />;
       case 'period':
         return <PeriodTracker />;
+      case 'insights':
+        return <HealthInsights />;
+      case 'symptoms':
+        return <SymptomsChart data={[]} />;
+      case 'settings':
+        return <Settings />;
       default:
         return <Dashboard 
           cycleDay={cycleDay}
@@ -95,38 +105,6 @@ const Index = () => {
         </main>
       </div>
     </div>
-  );
-};
-
-const Navigation = ({ activeTab, onTabChange }: { activeTab: string; onTabChange: (tab: string) => void }) => {
-  const tabs = [
-    { id: 'dashboard', label: 'Dashboard', icon: TrendingUp },
-    { id: 'period', label: 'Period Tracker', icon: Calendar },
-  ];
-
-  return (
-    <nav className="bg-white/70 backdrop-blur-lg rounded-2xl p-2 border border-white/20 shadow-lg">
-      <div className="flex flex-wrap gap-2">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <Button
-              key={tab.id}
-              variant={activeTab === tab.id ? "default" : "ghost"}
-              onClick={() => onTabChange(tab.id)}
-              className={`flex items-center space-x-2 transition-all duration-200 ${
-                activeTab === tab.id 
-                  ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md" 
-                  : "hover:bg-pink-50"
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              <span className="hidden sm:inline">{tab.label}</span>
-            </Button>
-          );
-        })}
-      </div>
-    </nav>
   );
 };
 
@@ -253,7 +231,7 @@ const Dashboard = ({ cycleDay, nextPeriod, onTabChange }: {
               <Button 
                 variant="outline" 
                 className="h-20 flex flex-col"
-                onClick={() => onTabChange('period')}
+                onClick={() => onTabChange('symptoms')}
               >
                 <TrendingUp className="w-6 h-6 mb-2" />
                 Track Symptoms
@@ -261,9 +239,10 @@ const Dashboard = ({ cycleDay, nextPeriod, onTabChange }: {
               <Button 
                 variant="outline" 
                 className="h-20 flex flex-col"
+                onClick={() => onTabChange('insights')}
               >
                 <BookOpen className="w-6 h-6 mb-2" />
-                Learn More
+                Health Insights
               </Button>
             </div>
           </CardContent>
