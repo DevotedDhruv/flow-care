@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      menstrual_cycles: {
+        Row: {
+          created_at: string
+          cycle_end_date: string | null
+          cycle_length: number | null
+          cycle_start_date: string
+          id: string
+          period_length: number | null
+          predicted: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          cycle_end_date?: string | null
+          cycle_length?: number | null
+          cycle_start_date: string
+          id?: string
+          period_length?: number | null
+          predicted?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          cycle_end_date?: string | null
+          cycle_length?: number | null
+          cycle_start_date?: string
+          id?: string
+          period_length?: number | null
+          predicted?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       period_entries: {
         Row: {
           created_at: string
@@ -16,6 +52,9 @@ export type Database = {
           flow_intensity: string
           id: string
           notes: string | null
+          period_end_date: string | null
+          period_start_date: string | null
+          symptoms: Json | null
           updated_at: string
           user_id: string
         }
@@ -25,6 +64,9 @@ export type Database = {
           flow_intensity: string
           id?: string
           notes?: string | null
+          period_end_date?: string | null
+          period_start_date?: string | null
+          symptoms?: Json | null
           updated_at?: string
           user_id: string
         }
@@ -34,6 +76,9 @@ export type Database = {
           flow_intensity?: string
           id?: string
           notes?: string | null
+          period_end_date?: string | null
+          period_start_date?: string | null
+          symptoms?: Json | null
           updated_at?: string
           user_id?: string
         }
