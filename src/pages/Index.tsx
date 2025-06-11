@@ -1,53 +1,65 @@
+
 import { useState, useEffect } from 'react';
-import { Calendar, Heart, Baby, BookOpen, Settings, Plus, TrendingUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Calendar, TrendingUp, Plus, BookOpen, LogOut } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import Navigation from '@/components/Navigation';
+import { useAuth } from '@/hooks/useAuth';
 import PeriodTracker from '@/components/PeriodTracker';
-import FertilityTracker from '@/components/FertilityTracker';
-import SymptomsLogger from '@/components/SymptomsLogger';
-import HealthInsights from '@/components/HealthInsights';
-import PregnancyMode from '@/components/PregnancyMode';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [pregnancyMode, setPregnancyMode] = useState(false);
   const [cycleDay, setCycleDay] = useState(12);
   const [nextPeriod, setNextPeriod] = useState(16);
-  const [fertileWindow, setFertileWindow] = useState({ start: 3, end: 7 });
+  const { user, loading, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
 
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard 
-          pregnancyMode={pregnancyMode}
           cycleDay={cycleDay}
           nextPeriod={nextPeriod}
-          fertileWindow={fertileWindow}
           onTabChange={setActiveTab}
         />;
       case 'period':
         return <PeriodTracker />;
-      case 'fertility':
-        return <FertilityTracker />;
-      case 'symptoms':
-        return <SymptomsLogger />;
-      case 'insights':
-        return <HealthInsights />;
-      case 'pregnancy':
-        return <PregnancyMode />;
       default:
         return <Dashboard 
-          pregnancyMode={pregnancyMode}
           cycleDay={cycleDay}
           nextPeriod={nextPeriod}
-          fertileWindow={fertileWindow}
           onTabChange={setActiveTab}
         />;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-teal-50 flex items-center justify-center">
+        <div className="text-center">
+          <Calendar className="w-12 h-12 text-pink-600 mx-auto mb-4 animate-pulse" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect to auth
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-teal-50">
@@ -58,20 +70,25 @@ const Index = () => {
               <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
                 FlowCare
               </h1>
-              <p className="text-muted-foreground mt-1">Your personal health companion</p>
+              <p className="text-muted-foreground mt-1">Your personal period tracking companion</p>
             </div>
-            <Button
-              variant={pregnancyMode ? "default" : "outline"}
-              onClick={() => setPregnancyMode(!pregnancyMode)}
-              className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
-            >
-              <Baby className="w-4 h-4 mr-2" />
-              {pregnancyMode ? 'Pregnancy Mode' : 'Enable Pregnancy Mode'}
-            </Button>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-muted-foreground">
+                Welcome, {user.user_metadata?.full_name || user.email}
+              </span>
+              <Button
+                variant="outline"
+                onClick={handleSignOut}
+                className="flex items-center space-x-2"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Sign Out</span>
+              </Button>
+            </div>
           </div>
         </header>
 
-        <Navigation activeTab={activeTab} onTabChange={setActiveTab} pregnancyMode={pregnancyMode} />
+        <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
         
         <main className="mt-8">
           {renderContent()}
@@ -81,9 +98,44 @@ const Index = () => {
   );
 };
 
-const Dashboard = ({ pregnancyMode, cycleDay, nextPeriod, fertileWindow, onTabChange }) => {
+const Navigation = ({ activeTab, onTabChange }: { activeTab: string; onTabChange: (tab: string) => void }) => {
+  const tabs = [
+    { id: 'dashboard', label: 'Dashboard', icon: TrendingUp },
+    { id: 'period', label: 'Period Tracker', icon: Calendar },
+  ];
+
+  return (
+    <nav className="bg-white/70 backdrop-blur-lg rounded-2xl p-2 border border-white/20 shadow-lg">
+      <div className="flex flex-wrap gap-2">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <Button
+              key={tab.id}
+              variant={activeTab === tab.id ? "default" : "ghost"}
+              onClick={() => onTabChange(tab.id)}
+              className={`flex items-center space-x-2 transition-all duration-200 ${
+                activeTab === tab.id 
+                  ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md" 
+                  : "hover:bg-pink-50"
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span className="hidden sm:inline">{tab.label}</span>
+            </Button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+};
+
+const Dashboard = ({ cycleDay, nextPeriod, onTabChange }: {
+  cycleDay: number;
+  nextPeriod: number;
+  onTabChange: (tab: string) => void;
+}) => {
   const progressPercentage = (cycleDay / 28) * 100;
-  const isInFertileWindow = cycleDay >= fertileWindow.start && cycleDay <= fertileWindow.end;
 
   return (
     <div className="space-y-6">
@@ -112,38 +164,6 @@ const Dashboard = ({ pregnancyMode, cycleDay, nextPeriod, fertileWindow, onTabCh
                 <div>
                   <p className="text-2xl font-bold text-purple-600">28</p>
                   <p className="text-xs text-muted-foreground">Avg cycle length</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-purple-100 to-purple-200 border-purple-200">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center">
-              <Heart className="w-5 h-5 mr-2 text-purple-600" />
-              Fertility Window
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="text-center">
-                {isInFertileWindow ? (
-                  <Badge variant="secondary" className="bg-purple-200 text-purple-800">
-                    High Fertility
-                  </Badge>
-                ) : (
-                  <Badge variant="outline">Low Fertility</Badge>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-center">
-                <div>
-                  <p className="text-2xl font-bold text-purple-600">{fertileWindow.start}</p>
-                  <p className="text-xs text-muted-foreground">Fertile window starts</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-purple-600">{fertileWindow.end}</p>
-                  <p className="text-xs text-muted-foreground">Days remaining</p>
                 </div>
               </div>
             </div>
@@ -180,6 +200,28 @@ const Dashboard = ({ pregnancyMode, cycleDay, nextPeriod, fertileWindow, onTabCh
             </div>
           </CardContent>
         </Card>
+
+        <Card className="bg-gradient-to-br from-purple-100 to-purple-200 border-purple-200">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center">
+              <Calendar className="w-5 h-5 mr-2 text-purple-600" />
+              This Month
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-purple-600">5</p>
+                <p className="text-sm text-muted-foreground">Days logged</p>
+              </div>
+              <div className="text-center">
+                <Badge variant="secondary" className="bg-purple-200 text-purple-800">
+                  Regular Flow
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -203,23 +245,22 @@ const Dashboard = ({ pregnancyMode, cycleDay, nextPeriod, fertileWindow, onTabCh
               <Button 
                 variant="outline" 
                 className="h-20 flex flex-col"
-                onClick={() => onTabChange('symptoms')}
+                onClick={() => onTabChange('period')}
               >
-                <Heart className="w-6 h-6 mb-2" />
+                <TrendingUp className="w-6 h-6 mb-2" />
+                View History
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col"
+                onClick={() => onTabChange('period')}
+              >
+                <TrendingUp className="w-6 h-6 mb-2" />
                 Track Symptoms
               </Button>
               <Button 
                 variant="outline" 
                 className="h-20 flex flex-col"
-                onClick={() => onTabChange('symptoms')}
-              >
-                <TrendingUp className="w-6 h-6 mb-2" />
-                Mood Check
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-20 flex flex-col"
-                onClick={() => onTabChange('insights')}
               >
                 <BookOpen className="w-6 h-6 mb-2" />
                 Learn More
@@ -239,8 +280,8 @@ const Dashboard = ({ pregnancyMode, cycleDay, nextPeriod, fertileWindow, onTabCh
                 <p className="text-sm text-pink-600 mt-1">Your cycles have been consistently 28 days for the past 3 months.</p>
               </div>
               <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                <h4 className="font-medium text-purple-800">PMS Prediction</h4>
-                <p className="text-sm text-purple-600 mt-1">You may experience mild PMS symptoms in 3-4 days based on your history.</p>
+                <h4 className="font-medium text-purple-800">Flow Tracking</h4>
+                <p className="text-sm text-purple-600 mt-1">You've been consistently tracking your flow intensity. Great job!</p>
               </div>
               <div className="p-4 bg-teal-50 rounded-lg border border-teal-200">
                 <h4 className="font-medium text-teal-800">Health Tip</h4>

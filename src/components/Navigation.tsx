@@ -1,22 +1,17 @@
 
-import { Calendar, Heart, Baby, TrendingUp, BookOpen, Settings } from 'lucide-react';
+import { Calendar, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface NavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
-  pregnancyMode: boolean;
 }
 
-const Navigation = ({ activeTab, onTabChange, pregnancyMode }: NavigationProps) => {
+const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: TrendingUp },
-    { id: 'period', label: 'Period', icon: Calendar },
-    { id: 'fertility', label: 'Fertility', icon: Heart },
-    { id: 'symptoms', label: 'Symptoms', icon: TrendingUp },
-    { id: 'insights', label: 'Insights', icon: BookOpen },
-    ...(pregnancyMode ? [{ id: 'pregnancy', label: 'Pregnancy', icon: Baby }] : []),
+    { id: 'period', label: 'Period Tracker', icon: Calendar },
   ];
 
   return (
