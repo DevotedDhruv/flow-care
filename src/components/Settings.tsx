@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { User, Lock, Trash2, Save } from 'lucide-react';
+import { User, Lock, Trash2, Save, Database } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -95,6 +94,29 @@ const Settings = () => {
     }
   };
 
+  const handleDeleteAllData = async () => {
+    setIsLoading(true);
+
+    try {
+      // Delete all user data but keep the account
+      await supabase.from('period_entries').delete().eq('user_id', user?.id);
+      await supabase.from('menstrual_cycles').delete().eq('user_id', user?.id);
+
+      toast({
+        title: "Data Deleted",
+        description: "All your tracking data has been permanently deleted",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to delete data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleDeleteAccount = async () => {
     setIsLoading(true);
 
@@ -127,7 +149,7 @@ const Settings = () => {
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="security">Security & Data</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="space-y-6">
@@ -222,6 +244,47 @@ const Settings = () => {
                   {isLoading ? 'Updating...' : 'Update Password'}
                 </Button>
               </form>
+            </CardContent>
+          </Card>
+
+          <Card className="border-orange-200">
+            <CardHeader>
+              <CardTitle className="flex items-center text-orange-600">
+                <Database className="w-5 h-5 mr-2" />
+                Delete Data Only
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Delete all your tracking data (periods, cycles, symptoms) but keep your account. This action cannot be undone.
+              </p>
+              
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" className="w-full border-orange-300 text-orange-600 hover:bg-orange-50">
+                    <Database className="w-4 h-4 mr-2" />
+                    Delete All Data
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete All Data?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete all your period tracking data, cycles, and symptoms. 
+                      Your account will remain active but all data will be lost. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteAllData}
+                      className="bg-orange-600 hover:bg-orange-700"
+                    >
+                      Yes, delete all data
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardContent>
           </Card>
 

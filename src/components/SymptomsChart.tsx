@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, BarChart3, PieChartIcon, Activity } from 'lucide-react';
+import { TrendingUp, BarChart3, PieChartIcon, Activity, Heart, Lightbulb } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 
 interface SymptomsChartProps {
   data: Array<{
@@ -21,7 +22,7 @@ interface SymptomsChartProps {
 
 const SymptomsChart = ({ data }: SymptomsChartProps) => {
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>(['cramps', 'mood', 'energy']);
-  const [chartType, setChartType] = useState<'line' | 'bar'>('line');
+  const [chartType, setChartType] = useState<'line' | 'bar' | 'area'>('line');
 
   const chartData = data.map(entry => ({
     date: new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
@@ -31,7 +32,7 @@ const SymptomsChart = ({ data }: SymptomsChartProps) => {
     energy: entry.symptoms.energy || 0,
     headache: entry.symptoms.headache || 0,
     bloating: entry.symptoms.bloating || 0,
-  })).slice(-14); // Show last 14 days
+  })).slice(-14);
 
   const symptomColors = {
     cramps: '#ef4444',
@@ -67,6 +68,70 @@ const SymptomsChart = ({ data }: SymptomsChartProps) => {
       color: symptomColors[symptom as keyof typeof symptomColors]
     };
   }).filter(item => item.value > 0);
+
+  // Symptom remedies
+  const symptomRemedies = {
+    cramps: {
+      title: "Natural Cramp Relief",
+      tips: [
+        "Apply heat therapy with heating pads or warm baths",
+        "Try gentle yoga poses like child's pose and cat-cow",
+        "Drink chamomile or ginger tea",
+        "Take magnesium supplements (200-400mg daily)",
+        "Practice deep breathing exercises",
+        "Use essential oils like lavender for massage"
+      ],
+      color: "text-red-600 bg-red-50 border-red-200"
+    },
+    headache: {
+      title: "Headache Management",
+      tips: [
+        "Stay hydrated - drink plenty of water",
+        "Apply cold compress to forehead",
+        "Practice neck and shoulder stretches",
+        "Limit screen time and rest your eyes",
+        "Try peppermint oil on temples",
+        "Maintain regular sleep schedule"
+      ],
+      color: "text-orange-600 bg-orange-50 border-orange-200"
+    },
+    bloating: {
+      title: "Bloating Relief",
+      tips: [
+        "Reduce sodium intake",
+        "Eat smaller, frequent meals",
+        "Avoid carbonated drinks",
+        "Try fennel tea or seeds",
+        "Gentle abdominal massage",
+        "Light walking after meals"
+      ],
+      color: "text-blue-600 bg-blue-50 border-blue-200"
+    },
+    mood: {
+      title: "Mood Support",
+      tips: [
+        "Regular exercise to boost endorphins",
+        "Practice meditation or mindfulness",
+        "Get adequate sunlight exposure",
+        "Connect with supportive friends",
+        "Try omega-3 supplements",
+        "Maintain consistent sleep routine"
+      ],
+      color: "text-purple-600 bg-purple-50 border-purple-200"
+    },
+    energy: {
+      title: "Energy Boosting",
+      tips: [
+        "Eat iron-rich foods like spinach and lean meats",
+        "Take short power naps (20-30 minutes)",
+        "Stay hydrated throughout the day",
+        "Try B-complex vitamins",
+        "Light exercise to increase circulation",
+        "Limit caffeine after 2 PM"
+      ],
+      color: "text-green-600 bg-green-50 border-green-200"
+    }
+  };
 
   // Symptom trends analysis
   const getSymptomTrend = (symptom: string) => {
@@ -139,6 +204,71 @@ const SymptomsChart = ({ data }: SymptomsChartProps) => {
     );
   }
 
+  const renderChart = () => {
+    switch (chartType) {
+      case 'area':
+        return (
+          <AreaChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis domain={[0, 5]} />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend />
+            {selectedSymptoms.map(symptom => (
+              <Area
+                key={symptom}
+                type="monotone"
+                dataKey={symptom}
+                stackId="1"
+                stroke={symptomColors[symptom as keyof typeof symptomColors]}
+                fill={symptomColors[symptom as keyof typeof symptomColors]}
+                fillOpacity={0.6}
+                name={symptomLabels[symptom as keyof typeof symptomLabels]}
+              />
+            ))}
+          </AreaChart>
+        );
+      case 'bar':
+        return (
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis domain={[0, 5]} />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend />
+            {selectedSymptoms.map(symptom => (
+              <Bar
+                key={symptom}
+                dataKey={symptom}
+                fill={symptomColors[symptom as keyof typeof symptomColors]}
+                name={symptomLabels[symptom as keyof typeof symptomLabels]}
+              />
+            ))}
+          </BarChart>
+        );
+      default:
+        return (
+          <LineChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis domain={[0, 5]} />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend />
+            {selectedSymptoms.map(symptom => (
+              <Line
+                key={symptom}
+                type="monotone"
+                dataKey={symptom}
+                stroke={symptomColors[symptom as keyof typeof symptomColors]}
+                strokeWidth={2}
+                name={symptomLabels[symptom as keyof typeof symptomLabels]}
+              />
+            ))}
+          </LineChart>
+        );
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -146,7 +276,7 @@ const SymptomsChart = ({ data }: SymptomsChartProps) => {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center">
               <TrendingUp className="w-5 h-5 mr-2 text-purple-600" />
-              Symptoms Tracking
+              Symptoms Analysis & Remedies
             </CardTitle>
             <div className="flex items-center space-x-2">
               <Button
@@ -165,14 +295,23 @@ const SymptomsChart = ({ data }: SymptomsChartProps) => {
                 <BarChart3 className="w-4 h-4 mr-1" />
                 Bar
               </Button>
+              <Button
+                variant={chartType === 'area' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setChartType('area')}
+              >
+                <Activity className="w-4 h-4 mr-1" />
+                Area
+              </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="chart" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="chart">Chart View</TabsTrigger>
               <TabsTrigger value="analysis">Analysis</TabsTrigger>
+              <TabsTrigger value="remedies">Remedies</TabsTrigger>
               <TabsTrigger value="overview">Overview</TabsTrigger>
             </TabsList>
 
@@ -197,41 +336,7 @@ const SymptomsChart = ({ data }: SymptomsChartProps) => {
 
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  {chartType === 'line' ? (
-                    <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis domain={[0, 5]} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Legend />
-                      {selectedSymptoms.map(symptom => (
-                        <Line
-                          key={symptom}
-                          type="monotone"
-                          dataKey={symptom}
-                          stroke={symptomColors[symptom as keyof typeof symptomColors]}
-                          strokeWidth={2}
-                          name={symptomLabels[symptom as keyof typeof symptomLabels]}
-                        />
-                      ))}
-                    </LineChart>
-                  ) : (
-                    <BarChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis domain={[0, 5]} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Legend />
-                      {selectedSymptoms.map(symptom => (
-                        <Bar
-                          key={symptom}
-                          dataKey={symptom}
-                          fill={symptomColors[symptom as keyof typeof symptomColors]}
-                          name={symptomLabels[symptom as keyof typeof symptomLabels]}
-                        />
-                      ))}
-                    </BarChart>
-                  )}
+                  {renderChart()}
                 </ResponsiveContainer>
               </div>
             </TabsContent>
@@ -295,6 +400,31 @@ const SymptomsChart = ({ data }: SymptomsChartProps) => {
               </div>
             </TabsContent>
 
+            <TabsContent value="remedies" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {Object.entries(symptomRemedies).map(([symptom, remedy]) => (
+                  <Card key={symptom} className={`border ${remedy.color.split(' ')[2]}`}>
+                    <CardHeader className="pb-3">
+                      <CardTitle className={`text-lg flex items-center ${remedy.color.split(' ')[0]}`}>
+                        <Lightbulb className="w-5 h-5 mr-2" />
+                        {remedy.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className={`${remedy.color.split(' ')[1]} p-4 rounded`}>
+                      <ul className="space-y-2">
+                        {remedy.tips.map((tip, index) => (
+                          <li key={index} className="flex items-start space-x-2 text-sm">
+                            <span className="text-green-600 mt-1">✓</span>
+                            <span>{tip}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+
             <TabsContent value="overview" className="space-y-6">
               <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 {Object.entries(symptomLabels).map(([key, label]) => {
@@ -321,6 +451,31 @@ const SymptomsChart = ({ data }: SymptomsChartProps) => {
 
               <Card>
                 <CardHeader>
+                  <CardTitle>Quick Actions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-4 bg-pink-50 border border-pink-200 rounded-lg text-center">
+                      <Heart className="w-8 h-8 mx-auto mb-2 text-pink-600" />
+                      <h4 className="font-medium text-pink-800">Self-Care</h4>
+                      <p className="text-sm text-pink-600">Take time for yourself today</p>
+                    </div>
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
+                      <Activity className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                      <h4 className="font-medium text-blue-800">Exercise</h4>
+                      <p className="text-sm text-blue-600">Light movement can help</p>
+                    </div>
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-center">
+                      <Lightbulb className="w-8 h-8 mx-auto mb-2 text-green-600" />
+                      <h4 className="font-medium text-green-800">Nutrition</h4>
+                      <p className="text-sm text-green-600">Focus on anti-inflammatory foods</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
                   <CardTitle>Insights</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -330,6 +485,7 @@ const SymptomsChart = ({ data }: SymptomsChartProps) => {
                       <p>🔍 Your most common symptom is <strong>{averageData[0].name}</strong> with an average severity of {averageData[0].value}/5</p>
                     )}
                     <p>📈 Track consistently for better insights and predictions</p>
+                    <p>💡 Check the Remedies tab for natural relief methods</p>
                   </div>
                 </CardContent>
               </Card>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { BookOpen, TrendingUp, AlertCircle, Heart, Info, ExternalLink, Play } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -59,15 +58,15 @@ const HealthInsights = () => {
     // Analyze symptoms
     const recentSymptoms = userSymptoms.slice(0, 5);
     const commonSymptoms = recentSymptoms.reduce((acc, entry) => {
-      if (entry.symptoms) {
+      if (entry.symptoms && typeof entry.symptoms === 'object') {
         Object.entries(entry.symptoms).forEach(([symptom, severity]) => {
-          if (severity > 3) {
+          if (typeof severity === 'number' && severity > 3) {
             acc[symptom] = (acc[symptom] || 0) + 1;
           }
         });
       }
       return acc;
-    }, {});
+    }, {} as Record<string, number>);
 
     return {
       avgCycleLength: Math.round(avgCycleLength),
@@ -125,9 +124,9 @@ Continue tracking your cycles to identify patterns and triggers. This informatio
       });
 
       personalizedVideos.unshift({
-        title: "Irregular Periods: Causes and Solutions",
-        channel: "Women's Health Network",
-        duration: "7:42",
+        title: "Understanding Irregular Periods",
+        channel: "Mayo Clinic",
+        duration: "5:23",
         thumbnail: "/placeholder.svg",
         url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         videoId: "dQw4w9WgXcQ"
@@ -177,9 +176,9 @@ If cramps are severe enough to interfere with daily activities, last longer than
 
     if (avgCycleLength > 35) {
       personalizedVideos.push({
-        title: "Long Menstrual Cycles: What You Need to Know",
-        channel: "Dr. Sarah Health",
-        duration: "9:18",
+        title: "Long Menstrual Cycles Explained",
+        channel: "Women's Health Network",
+        duration: "7:45",
         thumbnail: "/placeholder.svg",
         url: "https://www.youtube.com/watch?v=oHg5SJYRHA0",
         videoId: "oHg5SJYRHA0"

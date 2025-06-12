@@ -1,208 +1,238 @@
 
-import { useState, useEffect } from 'react';
-import { MessageCircle, Heart, Reply, Plus, Users, TrendingUp, Clock } from 'lucide-react';
+import { useState } from 'react';
+import { MessageSquare, Users, Plus, Heart, MessageCircle, ThumbsUp, ThumbsDown, Send, Hash } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
 
 interface Post {
   id: string;
   title: string;
   content: string;
-  category: string;
-  author_name: string;
-  created_at: string;
-  likes_count: number;
-  replies_count: number;
-  is_anonymous: boolean;
+  author: string;
+  tags: string[];
+  likes: number;
+  dislikes: number;
+  replies: number;
+  createdAt: string;
+  userVote?: 'like' | 'dislike' | null;
 }
 
 interface Reply {
   id: string;
+  postId: string;
   content: string;
-  author_name: string;
-  created_at: string;
-  is_anonymous: boolean;
+  author: string;
+  likes: number;
+  dislikes: number;
+  createdAt: string;
+  userVote?: 'like' | 'dislike' | null;
 }
 
 const Community = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-  const [replies, setReplies] = useState<Reply[]>([]);
-  const [newPost, setNewPost] = useState({ title: '', content: '', category: 'general', isAnonymous: false });
-  const [newReply, setNewReply] = useState({ content: '', isAnonymous: false });
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('all');
   const { user } = useAuth();
-  const { toast } = useToast();
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
+  
+  // New post form state
+  const [newPostTitle, setNewPostTitle] = useState('');
+  const [newPostContent, setNewPostContent] = useState('');
+  const [newPostTags, setNewPostTags] = useState('');
+  
+  // Reply form state
+  const [replyContent, setReplyContent] = useState('');
 
-  useEffect(() => {
-    fetchPosts();
-  }, [activeTab]);
-
-  // Mock data for demonstration since we don't have the community tables set up yet
-  const mockPosts: Post[] = [
+  // Mock data - in a real app, this would come from your database
+  const [posts, setPosts] = useState<Post[]>([
     {
       id: '1',
-      title: 'Irregular periods after stopping birth control?',
-      content: 'Has anyone experienced irregular cycles after stopping hormonal birth control? Its been 3 months and my periods are all over the place. Looking for advice and similar experiences.',
-      category: 'cycle-health',
-      author_name: 'Sarah M.',
-      created_at: '2024-01-10T10:30:00Z',
-      likes_count: 12,
-      replies_count: 8,
-      is_anonymous: false
+      title: 'Severe cramps during first day - any advice?',
+      content: 'I experience really intense cramps on my first day. Heat pads help a bit but wondering if anyone has other natural remedies that work?',
+      author: 'Sarah M.',
+      tags: ['cramps', 'pain-relief', 'natural-remedies'],
+      likes: 24,
+      dislikes: 2,
+      replies: 8,
+      createdAt: '2024-01-15T10:30:00Z',
+      userVote: null
     },
     {
       id: '2',
-      title: 'Natural remedies for severe cramps?',
-      content: 'My cramps have been getting worse lately. Ive tried heat pads and ibuprofen, but Im looking for more natural alternatives. What works for you?',
-      category: 'pain-management',
-      author_name: 'Anonymous',
-      created_at: '2024-01-09T15:45:00Z',
-      likes_count: 24,
-      replies_count: 15,
-      is_anonymous: true
+      title: 'Irregular cycles after stress - is this normal?',
+      content: 'Been going through a stressful period at work and my cycles have become irregular. Has anyone experienced similar? How long did it take to normalize?',
+      author: 'Emma K.',
+      tags: ['irregular-cycles', 'stress', 'hormones'],
+      likes: 18,
+      dislikes: 0,
+      replies: 12,
+      createdAt: '2024-01-14T15:45:00Z',
+      userVote: null
     },
     {
       id: '3',
-      title: 'PCOS diagnosis - feeling overwhelmed',
-      content: 'Just got diagnosed with PCOS and feeling scared and confused. Would love to connect with others who have been through this journey.',
-      category: 'support',
-      author_name: 'Anonymous',
-      created_at: '2024-01-08T09:20:00Z',
-      likes_count: 18,
-      replies_count: 22,
-      is_anonymous: true
-    },
-    {
-      id: '4',
       title: 'Best period tracking apps?',
-      content: 'Im new to period tracking and looking for app recommendations. What features do you find most helpful?',
-      category: 'tools-tips',
-      author_name: 'Emma K.',
-      created_at: '2024-01-07T14:15:00Z',
-      likes_count: 7,
-      replies_count: 12,
-      is_anonymous: false
+      content: 'Looking for recommendations for period tracking apps. What features do you find most helpful?',
+      author: 'Lisa R.',
+      tags: ['apps', 'tracking', 'recommendations'],
+      likes: 31,
+      dislikes: 1,
+      replies: 15,
+      createdAt: '2024-01-13T09:20:00Z',
+      userVote: 'like'
+    }
+  ]);
+
+  const [replies, setReplies] = useState<Reply[]>([
+    {
+      id: 'r1',
+      postId: '1',
+      content: 'I swear by ginger tea and gentle yoga poses like child\'s pose. Also, magnesium supplements have been a game changer for me!',
+      author: 'Jennifer L.',
+      likes: 12,
+      dislikes: 0,
+      createdAt: '2024-01-15T11:15:00Z',
+      userVote: null
     },
     {
-      id: '5',
-      title: 'Exercise during your period - yes or no?',
-      content: 'Do you exercise during your period? I feel so tired and crampy but wondering if light exercise might actually help.',
-      category: 'lifestyle',
-      author_name: 'FitnessLover23',
-      created_at: '2024-01-06T11:30:00Z',
-      likes_count: 15,
-      replies_count: 19,
-      is_anonymous: false
+      id: 'r2',
+      postId: '1',
+      content: 'Heat therapy combined with light exercise works for me. Even a 10-minute walk can help reduce the intensity.',
+      author: 'Maya P.',
+      likes: 8,
+      dislikes: 1,
+      createdAt: '2024-01-15T12:00:00Z',
+      userVote: null
     }
+  ]);
+
+  const categories = [
+    { id: 'all', name: 'All Posts', count: posts.length },
+    { id: 'symptoms', name: 'Symptoms & Pain', count: posts.filter(p => p.tags.some(tag => ['cramps', 'pain-relief', 'symptoms'].includes(tag))).length },
+    { id: 'cycles', name: 'Cycle Questions', count: posts.filter(p => p.tags.some(tag => ['irregular-cycles', 'tracking'].includes(tag))).length },
+    { id: 'lifestyle', name: 'Lifestyle & Tips', count: posts.filter(p => p.tags.some(tag => ['natural-remedies', 'apps', 'recommendations'].includes(tag))).length },
+    { id: 'support', name: 'Support & Encouragement', count: 0 }
   ];
 
-  const mockReplies: Reply[] = [
-    {
-      id: '1',
-      content: 'It took about 6 months for my cycles to regulate after stopping the pill. Be patient with your body - its readjusting to its natural hormones!',
-      author_name: 'HealthyLiving',
-      created_at: '2024-01-10T12:00:00Z',
-      is_anonymous: false
-    },
-    {
-      id: '2',
-      content: 'I experienced the same thing! My doctor said it can take up to a year for some people. Track everything and consider seeing a gynecologist if youre concerned.',
-      author_name: 'Anonymous',
-      created_at: '2024-01-10T13:15:00Z',
-      is_anonymous: true
-    }
-  ];
+  const handleCreatePost = () => {
+    if (!newPostTitle.trim() || !newPostContent.trim()) return;
 
-  const fetchPosts = async () => {
-    // For now, using mock data. In a real app, this would fetch from Supabase
-    setLoading(true);
-    
-    // Simulate API delay
-    setTimeout(() => {
-      let filteredPosts = mockPosts;
-      
-      if (activeTab !== 'all') {
-        filteredPosts = mockPosts.filter(post => post.category === activeTab);
+    const newPost: Post = {
+      id: Date.now().toString(),
+      title: newPostTitle,
+      content: newPostContent,
+      author: user?.user_metadata?.full_name || user?.email || 'Anonymous',
+      tags: newPostTags.split(',').map(tag => tag.trim()).filter(tag => tag),
+      likes: 0,
+      dislikes: 0,
+      replies: 0,
+      createdAt: new Date().toISOString(),
+      userVote: null
+    };
+
+    setPosts([newPost, ...posts]);
+    setNewPostTitle('');
+    setNewPostContent('');
+    setNewPostTags('');
+    setIsCreatePostOpen(false);
+  };
+
+  const handleVotePost = (postId: string, voteType: 'like' | 'dislike') => {
+    setPosts(posts.map(post => {
+      if (post.id === postId) {
+        const currentVote = post.userVote;
+        let newLikes = post.likes;
+        let newDislikes = post.dislikes;
+        let newUserVote: 'like' | 'dislike' | null = voteType;
+
+        // Remove previous vote if exists
+        if (currentVote === 'like') newLikes--;
+        if (currentVote === 'dislike') newDislikes--;
+
+        // If clicking the same vote, remove it
+        if (currentVote === voteType) {
+          newUserVote = null;
+        } else {
+          // Add new vote
+          if (voteType === 'like') newLikes++;
+          if (voteType === 'dislike') newDislikes++;
+        }
+
+        return { ...post, likes: newLikes, dislikes: newDislikes, userVote: newUserVote };
       }
-      
-      setPosts(filteredPosts);
-      setLoading(false);
-    }, 500);
+      return post;
+    }));
   };
 
-  const fetchReplies = async (postId: string) => {
-    // For now, using mock data
-    setReplies(mockReplies);
+  const handleVoteReply = (replyId: string, voteType: 'like' | 'dislike') => {
+    setReplies(replies.map(reply => {
+      if (reply.id === replyId) {
+        const currentVote = reply.userVote;
+        let newLikes = reply.likes;
+        let newDislikes = reply.dislikes;
+        let newUserVote: 'like' | 'dislike' | null = voteType;
+
+        // Remove previous vote if exists
+        if (currentVote === 'like') newLikes--;
+        if (currentVote === 'dislike') newDislikes--;
+
+        // If clicking the same vote, remove it
+        if (currentVote === voteType) {
+          newUserVote = null;
+        } else {
+          // Add new vote
+          if (voteType === 'like') newLikes++;
+          if (voteType === 'dislike') newDislikes++;
+        }
+
+        return { ...reply, likes: newLikes, dislikes: newDislikes, userVote: newUserVote };
+      }
+      return reply;
+    }));
   };
 
-  const handleCreatePost = async () => {
-    if (!newPost.title.trim() || !newPost.content.trim()) {
-      toast({
-        title: "Error",
-        description: "Please fill in both title and content.",
-        variant: "destructive"
-      });
-      return;
-    }
+  const handleAddReply = (postId: string) => {
+    if (!replyContent.trim()) return;
 
-    // In a real app, this would create a post in Supabase
-    const post: Post = {
+    const newReply: Reply = {
       id: Date.now().toString(),
-      title: newPost.title,
-      content: newPost.content,
-      category: newPost.category,
-      author_name: newPost.isAnonymous ? 'Anonymous' : (user?.user_metadata?.full_name || 'User'),
-      created_at: new Date().toISOString(),
-      likes_count: 0,
-      replies_count: 0,
-      is_anonymous: newPost.isAnonymous
+      postId,
+      content: replyContent,
+      author: user?.user_metadata?.full_name || user?.email || 'Anonymous',
+      likes: 0,
+      dislikes: 0,
+      createdAt: new Date().toISOString(),
+      userVote: null
     };
 
-    setPosts([post, ...posts]);
-    setNewPost({ title: '', content: '', category: 'general', isAnonymous: false });
-    
-    toast({
-      title: "Success",
-      description: "Your post has been created!"
-    });
+    setReplies([...replies, newReply]);
+    setPosts(posts.map(post => 
+      post.id === postId 
+        ? { ...post, replies: post.replies + 1 }
+        : post
+    ));
+    setReplyContent('');
   };
 
-  const handleReply = async () => {
-    if (!newReply.content.trim()) {
-      toast({
-        title: "Error",
-        description: "Please write a reply.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const reply: Reply = {
-      id: Date.now().toString(),
-      content: newReply.content,
-      author_name: newReply.isAnonymous ? 'Anonymous' : (user?.user_metadata?.full_name || 'User'),
-      created_at: new Date().toISOString(),
-      is_anonymous: newReply.isAnonymous
+  const getFilteredPosts = () => {
+    if (activeCategory === 'all') return posts;
+    
+    const categoryTagMap: Record<string, string[]> = {
+      symptoms: ['cramps', 'pain-relief', 'symptoms', 'headache', 'bloating'],
+      cycles: ['irregular-cycles', 'tracking', 'hormones'],
+      lifestyle: ['natural-remedies', 'apps', 'recommendations', 'nutrition'],
+      support: ['support', 'encouragement', 'mental-health']
     };
 
-    setReplies([...replies, reply]);
-    setNewReply({ content: '', isAnonymous: false });
-    
-    toast({
-      title: "Success",
-      description: "Your reply has been posted!"
-    });
+    return posts.filter(post => 
+      post.tags.some(tag => categoryTagMap[activeCategory]?.includes(tag))
+    );
   };
 
   const formatDate = (dateString: string) => {
@@ -212,46 +242,30 @@ const Community = () => {
     
     if (diffInHours < 1) return 'Just now';
     if (diffInHours < 24) return `${diffInHours}h ago`;
-    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`;
-    return date.toLocaleDateString();
+    const diffInDays = Math.floor(diffInHours / 24);
+    return `${diffInDays}d ago`;
   };
 
-  const getCategoryColor = (category: string) => {
-    const colors = {
-      'cycle-health': 'bg-pink-100 text-pink-800',
-      'pain-management': 'bg-red-100 text-red-800',
-      'support': 'bg-purple-100 text-purple-800',
-      'tools-tips': 'bg-blue-100 text-blue-800',
-      'lifestyle': 'bg-green-100 text-green-800',
-      'general': 'bg-gray-100 text-gray-800'
-    };
-    return colors[category] || colors.general;
-  };
-
-  const getCategoryLabel = (category: string) => {
-    const labels = {
-      'cycle-health': 'Cycle Health',
-      'pain-management': 'Pain Management',
-      'support': 'Support',
-      'tools-tips': 'Tools & Tips',
-      'lifestyle': 'Lifestyle',
-      'general': 'General'
-    };
-    return labels[category] || 'General';
+  const getPostReplies = (postId: string) => {
+    return replies.filter(reply => reply.postId === postId);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Community</h2>
-          <p className="text-muted-foreground">Connect with others and share experiences</p>
+          <h2 className="text-2xl font-bold flex items-center">
+            <Users className="w-6 h-6 mr-2 text-pink-600" />
+            Community
+          </h2>
+          <p className="text-muted-foreground">Connect, share experiences, and support each other</p>
         </div>
-        <Dialog>
+        
+        <Dialog open={isCreatePostOpen} onOpenChange={setIsCreatePostOpen}>
           <DialogTrigger asChild>
-            <Button className="flex items-center space-x-2">
-              <Plus className="w-4 h-4" />
-              <span>New Post</span>
+            <Button className="bg-gradient-to-r from-pink-500 to-purple-500">
+              <Plus className="w-4 h-4 mr-2" />
+              New Post
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
@@ -263,206 +277,203 @@ const Community = () => {
                 <Label htmlFor="title">Title</Label>
                 <Input
                   id="title"
-                  placeholder="What's on your mind?"
-                  value={newPost.title}
-                  onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
+                  value={newPostTitle}
+                  onChange={(e) => setNewPostTitle(e.target.value)}
+                  placeholder="What's your question or topic?"
                 />
-              </div>
-              <div>
-                <Label htmlFor="category">Category</Label>
-                <select
-                  id="category"
-                  className="w-full p-2 border rounded-md"
-                  value={newPost.category}
-                  onChange={(e) => setNewPost({ ...newPost, category: e.target.value })}
-                >
-                  <option value="general">General</option>
-                  <option value="cycle-health">Cycle Health</option>
-                  <option value="pain-management">Pain Management</option>
-                  <option value="support">Support</option>
-                  <option value="tools-tips">Tools & Tips</option>
-                  <option value="lifestyle">Lifestyle</option>
-                </select>
               </div>
               <div>
                 <Label htmlFor="content">Content</Label>
                 <Textarea
                   id="content"
+                  value={newPostContent}
+                  onChange={(e) => setNewPostContent(e.target.value)}
                   placeholder="Share your thoughts, questions, or experiences..."
-                  value={newPost.content}
-                  onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
                   rows={5}
                 />
               </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="anonymous"
-                  checked={newPost.isAnonymous}
-                  onChange={(e) => setNewPost({ ...newPost, isAnonymous: e.target.checked })}
+              <div>
+                <Label htmlFor="tags">Tags (comma-separated)</Label>
+                <Input
+                  id="tags"
+                  value={newPostTags}
+                  onChange={(e) => setNewPostTags(e.target.value)}
+                  placeholder="e.g., cramps, irregular-cycles, natural-remedies"
                 />
-                <Label htmlFor="anonymous">Post anonymously</Label>
               </div>
-              <Button onClick={handleCreatePost} className="w-full">
-                Create Post
-              </Button>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setIsCreatePostOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleCreatePost}>
+                  Post
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="cycle-health">Cycle Health</TabsTrigger>
-          <TabsTrigger value="pain-management">Pain</TabsTrigger>
-          <TabsTrigger value="support">Support</TabsTrigger>
-          <TabsTrigger value="tools-tips">Tips</TabsTrigger>
-          <TabsTrigger value="lifestyle">Lifestyle</TabsTrigger>
+      <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          {categories.map((category) => (
+            <TabsTrigger key={category.id} value={category.id} className="text-xs">
+              {category.name} ({category.count})
+            </TabsTrigger>
+          ))}
         </TabsList>
 
-        <TabsContent value={activeTab} className="space-y-4">
-          {loading ? (
-            <div className="flex items-center justify-center p-8">
-              <Users className="w-8 h-8 text-pink-600 animate-pulse" />
-            </div>
-          ) : (
-            posts.map((post) => (
-              <Card key={post.id} className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <Badge className={getCategoryColor(post.category)}>
-                          {getCategoryLabel(post.category)}
+        <TabsContent value={activeCategory} className="space-y-4 mt-6">
+          {getFilteredPosts().map((post) => (
+            <Card key={post.id} className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <CardTitle className="text-lg mb-2">{post.title}</CardTitle>
+                    <p className="text-sm text-muted-foreground mb-3">{post.content}</p>
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {post.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary" className="text-xs">
+                          <Hash className="w-3 h-3 mr-1" />
+                          {tag}
                         </Badge>
-                        <span className="text-sm text-muted-foreground">
-                          by {post.author_name}
-                        </span>
-                        <span className="text-sm text-muted-foreground">•</span>
-                        <span className="text-sm text-muted-foreground">
-                          {formatDate(post.created_at)}
-                        </span>
-                      </div>
-                      <CardTitle className="text-lg">{post.title}</CardTitle>
+                      ))}
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                    {post.content}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                      <div className="flex items-center space-x-1">
-                        <Heart className="w-4 h-4" />
-                        <span>{post.likes_count}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <MessageCircle className="w-4 h-4" />
-                        <span>{post.replies_count}</span>
-                      </div>
-                    </div>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setSelectedPost(post);
-                            fetchReplies(post.id);
-                          }}
-                        >
-                          <Reply className="w-4 h-4 mr-2" />
-                          View Discussion
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                        <DialogHeader>
-                          <div className="flex items-center space-x-2 mb-2">
-                            <Badge className={getCategoryColor(post.category)}>
-                              {getCategoryLabel(post.category)}
-                            </Badge>
-                            <span className="text-sm text-muted-foreground">
-                              by {post.author_name} • {formatDate(post.created_at)}
-                            </span>
-                          </div>
-                          <DialogTitle className="text-xl">{post.title}</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-6">
-                          <div className="p-4 bg-gray-50 rounded-lg">
-                            <p className="whitespace-pre-wrap">{post.content}</p>
-                          </div>
-                          
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <div className="flex items-center space-x-4">
+                    <span>By {post.author}</span>
+                    <span>{formatDate(post.createdAt)}</span>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleVotePost(post.id, 'like')}
+                        className={`p-1 h-auto ${post.userVote === 'like' ? 'text-green-600' : ''}`}
+                      >
+                        <ThumbsUp className="w-4 h-4 mr-1" />
+                        {post.likes}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleVotePost(post.id, 'dislike')}
+                        className={`p-1 h-auto ${post.userVote === 'dislike' ? 'text-red-600' : ''}`}
+                      >
+                        <ThumbsDown className="w-4 h-4 mr-1" />
+                        {post.dislikes}
+                      </Button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="ghost" size="sm" className="p-1 h-auto">
+                            <MessageCircle className="w-4 h-4 mr-1" />
+                            {post.replies}
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle>{post.title}</DialogTitle>
+                          </DialogHeader>
                           <div className="space-y-4">
-                            <h4 className="font-medium">Replies ({replies.length})</h4>
-                            
-                            {replies.map((reply) => (
-                              <div key={reply.id} className="p-4 border rounded-lg">
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="font-medium text-sm">
-                                    {reply.author_name}
+                            <div className="p-4 bg-gray-50 rounded-lg">
+                              <p className="text-sm">{post.content}</p>
+                              <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
+                                <span>By {post.author} • {formatDate(post.createdAt)}</span>
+                                <div className="flex items-center space-x-2">
+                                  <span className="flex items-center">
+                                    <ThumbsUp className="w-3 h-3 mr-1" />
+                                    {post.likes}
                                   </span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {formatDate(reply.created_at)}
+                                  <span className="flex items-center">
+                                    <ThumbsDown className="w-3 h-3 mr-1" />
+                                    {post.dislikes}
                                   </span>
                                 </div>
-                                <p className="text-sm">{reply.content}</p>
                               </div>
-                            ))}
-                          </div>
+                            </div>
 
-                          <div className="space-y-4 border-t pt-4">
-                            <h4 className="font-medium">Add Reply</h4>
-                            <Textarea
-                              placeholder="Share your thoughts or advice..."
-                              value={newReply.content}
-                              onChange={(e) => setNewReply({ ...newReply, content: e.target.value })}
-                              rows={3}
-                            />
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-2">
-                                <input
-                                  type="checkbox"
-                                  id="reply-anonymous"
-                                  checked={newReply.isAnonymous}
-                                  onChange={(e) => setNewReply({ ...newReply, isAnonymous: e.target.checked })}
+                            <div className="space-y-3">
+                              <h4 className="font-medium">Replies ({getPostReplies(post.id).length})</h4>
+                              {getPostReplies(post.id).map((reply) => (
+                                <div key={reply.id} className="p-3 border rounded-lg">
+                                  <p className="text-sm mb-2">{reply.content}</p>
+                                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                    <span>By {reply.author} • {formatDate(reply.createdAt)}</span>
+                                    <div className="flex items-center space-x-2">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleVoteReply(reply.id, 'like')}
+                                        className={`p-1 h-auto text-xs ${reply.userVote === 'like' ? 'text-green-600' : ''}`}
+                                      >
+                                        <ThumbsUp className="w-3 h-3 mr-1" />
+                                        {reply.likes}
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleVoteReply(reply.id, 'dislike')}
+                                        className={`p-1 h-auto text-xs ${reply.userVote === 'dislike' ? 'text-red-600' : ''}`}
+                                      >
+                                        <ThumbsDown className="w-3 h-3 mr-1" />
+                                        {reply.dislikes}
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className="border-t pt-4">
+                              <h4 className="font-medium mb-3">Add a Reply</h4>
+                              <div className="flex space-x-2">
+                                <Textarea
+                                  value={replyContent}
+                                  onChange={(e) => setReplyContent(e.target.value)}
+                                  placeholder="Share your thoughts or advice..."
+                                  rows={3}
+                                  className="flex-1"
                                 />
-                                <Label htmlFor="reply-anonymous">Reply anonymously</Label>
+                                <Button 
+                                  onClick={() => handleAddReply(post.id)}
+                                  className="self-end"
+                                >
+                                  <Send className="w-4 h-4" />
+                                </Button>
                               </div>
-                              <Button onClick={handleReply}>
-                                Post Reply
-                              </Button>
                             </div>
                           </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+
+          {getFilteredPosts().length === 0 && (
+            <Card>
+              <CardContent className="text-center py-12">
+                <MessageSquare className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-600 mb-2">No posts in this category yet</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Be the first to start a conversation in this category!
+                </p>
+                <Button onClick={() => setIsCreatePostOpen(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create First Post
+                </Button>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
       </Tabs>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <TrendingUp className="w-5 h-5 mr-2 text-pink-600" />
-            Community Guidelines
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 text-sm text-muted-foreground">
-            <p>• Be respectful and supportive of others</p>
-            <p>• Share experiences and advice, not medical diagnoses</p>
-            <p>• Use content warnings for sensitive topics</p>
-            <p>• Respect privacy - avoid sharing personal medical details</p>
-            <p>• Report inappropriate content to moderators</p>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
