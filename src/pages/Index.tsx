@@ -12,6 +12,7 @@ import SymptomsChart from '@/components/SymptomsChart';
 import Settings from '@/components/Settings';
 import Community from '@/components/Community';
 import Navigation from '@/components/Navigation';
+import NepaliCalendar from '@/components/NepaliCalendar';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -205,72 +206,82 @@ const Dashboard = ({ cycleDay, nextPeriod, onTabChange }: {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Quick Actions
-              <Plus className="w-5 h-5" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <Button 
-                variant="outline" 
-                className="h-20 flex flex-col"
-                onClick={() => onTabChange('period')}
-              >
-                <Calendar className="w-6 h-6 mb-2" />
-                Log Period
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-20 flex flex-col"
-                onClick={() => onTabChange('period')}
-              >
-                <TrendingUp className="w-6 h-6 mb-2" />
-                View History
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-20 flex flex-col"
-                onClick={() => onTabChange('symptoms')}
-              >
-                <TrendingUp className="w-6 h-6 mb-2" />
-                Track Symptoms
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-20 flex flex-col"
-                onClick={() => onTabChange('insights')}
-              >
-                <BookOpen className="w-6 h-6 mb-2" />
-                Health Insights
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <NepaliCalendar 
+          onDateClick={(date) => {
+            console.log('Selected date:', date);
+            onTabChange('period');
+          }}
+          showPhases={true}
+        />
+        
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                Quick Actions
+                <Plus className="w-5 h-5" />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex flex-col"
+                  onClick={() => onTabChange('period')}
+                >
+                  <Calendar className="w-6 h-6 mb-2" />
+                  Log Period
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex flex-col"
+                  onClick={() => onTabChange('period')}
+                >
+                  <TrendingUp className="w-6 h-6 mb-2" />
+                  View History
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex flex-col"
+                  onClick={() => onTabChange('symptoms')}
+                >
+                  <TrendingUp className="w-6 h-6 mb-2" />
+                  Track Symptoms
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex flex-col"
+                  onClick={() => onTabChange('insights')}
+                >
+                  <BookOpen className="w-6 h-6 mb-2" />
+                  Health Insights
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Insights</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="p-4 bg-pink-50 rounded-lg border border-pink-200">
-                <h4 className="font-medium text-pink-800">Cycle Pattern</h4>
-                <p className="text-sm text-pink-600 mt-1">Your cycles have been consistently 28 days for the past 3 months.</p>
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Insights</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="p-4 bg-pink-50 rounded-lg border border-pink-200">
+                  <h4 className="font-medium text-pink-800">Cycle Pattern</h4>
+                  <p className="text-sm text-pink-600 mt-1">Your cycles have been consistently 28 days for the past 3 months.</p>
+                </div>
+                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                  <h4 className="font-medium text-purple-800">Flow Tracking</h4>
+                  <p className="text-sm text-purple-600 mt-1">You've been consistently tracking your flow intensity. Great job!</p>
+                </div>
+                <div className="p-4 bg-teal-50 rounded-lg border border-teal-200">
+                  <h4 className="font-medium text-teal-800">Health Tip</h4>
+                  <p className="text-sm text-teal-600 mt-1">Consider increasing iron-rich foods during your period to combat fatigue.</p>
+                </div>
               </div>
-              <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                <h4 className="font-medium text-purple-800">Flow Tracking</h4>
-                <p className="text-sm text-purple-600 mt-1">You've been consistently tracking your flow intensity. Great job!</p>
-              </div>
-              <div className="p-4 bg-teal-50 rounded-lg border border-teal-200">
-                <h4 className="font-medium text-teal-800">Health Tip</h4>
-                <p className="text-sm text-teal-600 mt-1">Consider increasing iron-rich foods during your period to combat fatigue.</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

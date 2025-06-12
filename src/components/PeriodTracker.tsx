@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import SymptomsChart from './SymptomsChart';
 import CyclePrediction from './CyclePrediction';
+import NepaliCalendar from './NepaliCalendar';
 
 type FlowIntensity = 'spotting' | 'light' | 'medium' | 'heavy';
 
@@ -332,56 +333,67 @@ const PeriodTracker = () => {
         </TabsContent>
 
         <TabsContent value="history" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Calendar className="w-5 h-5 mr-2 text-pink-600" />
-                Period History
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {entries.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    No period entries found. Start by logging your first entry!
-                  </p>
-                ) : (
-                  entries.map((entry) => (
-                    <div key={entry.id} className="p-4 border rounded-lg space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium">{new Date(entry.date).toLocaleDateString()}</h4>
-                        <Badge className={getFlowColor(entry.flow_intensity)}>
-                          {entry.flow_intensity}
-                        </Badge>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <NepaliCalendar 
+              periodEntries={entries}
+              onDateClick={(date) => {
+                setSelectedDate(date.toISOString().split('T')[0]);
+                setActiveTab('log');
+              }}
+              showPhases={true}
+            />
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Calendar className="w-5 h-5 mr-2 text-pink-600" />
+                  Period History
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {entries.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">
+                      No period entries found. Start by logging your first entry!
+                    </p>
+                  ) : (
+                    entries.map((entry) => (
+                      <div key={entry.id} className="p-4 border rounded-lg space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium">{new Date(entry.date).toLocaleDateString()}</h4>
+                          <Badge className={getFlowColor(entry.flow_intensity)}>
+                            {entry.flow_intensity}
+                          </Badge>
+                        </div>
+                        
+                        {(entry.period_start_date || entry.period_end_date) && (
+                          <div className="text-sm text-muted-foreground">
+                            {entry.period_start_date && `Start: ${new Date(entry.period_start_date).toLocaleDateString()}`}
+                            {entry.period_start_date && entry.period_end_date && ' • '}
+                            {entry.period_end_date && `End: ${new Date(entry.period_end_date).toLocaleDateString()}`}
+                          </div>
+                        )}
+                        
+                        {entry.symptoms && Object.keys(entry.symptoms).length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {formatSymptoms(entry.symptoms).map((symptom, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {symptom}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {entry.notes && (
+                          <p className="text-sm text-muted-foreground">{entry.notes}</p>
+                        )}
                       </div>
-                      
-                      {(entry.period_start_date || entry.period_end_date) && (
-                        <div className="text-sm text-muted-foreground">
-                          {entry.period_start_date && `Start: ${new Date(entry.period_start_date).toLocaleDateString()}`}
-                          {entry.period_start_date && entry.period_end_date && ' • '}
-                          {entry.period_end_date && `End: ${new Date(entry.period_end_date).toLocaleDateString()}`}
-                        </div>
-                      )}
-                      
-                      {entry.symptoms && Object.keys(entry.symptoms).length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {formatSymptoms(entry.symptoms).map((symptom, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {symptom}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                      
-                      {entry.notes && (
-                        <p className="text-sm text-muted-foreground">{entry.notes}</p>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="symptoms" className="space-y-6">
