@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, TrendingUp, Plus, BookOpen, LogOut } from 'lucide-react';
@@ -11,6 +10,7 @@ import PeriodTracker from '@/components/PeriodTracker';
 import HealthInsights from '@/components/HealthInsights';
 import SymptomsChart from '@/components/SymptomsChart';
 import Settings from '@/components/Settings';
+import Community from '@/components/Community';
 import Navigation from '@/components/Navigation';
 
 const Index = () => {
@@ -45,6 +45,8 @@ const Index = () => {
         return <HealthInsights />;
       case 'symptoms':
         return <SymptomsChart data={[]} />;
+      case 'community':
+        return <Community />;
       case 'settings':
         return <Settings />;
       default:

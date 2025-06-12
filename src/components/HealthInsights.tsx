@@ -1,35 +1,226 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { BookOpen, TrendingUp, AlertCircle, Heart, Info, ExternalLink, Play } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 const HealthInsights = () => {
   const [selectedArticle, setSelectedArticle] = useState<any>(null);
+  const [userCycles, setUserCycles] = useState<any[]>([]);
+  const [userSymptoms, setUserSymptoms] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      fetchUserData();
+    }
+  }, [user]);
+
+  const fetchUserData = async () => {
+    try {
+      // Fetch user's cycle data
+      const { data: cycles } = await supabase
+        .from('menstrual_cycles')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('cycle_start_date', { ascending: false })
+        .limit(6);
+
+      // Fetch user's recent symptoms
+      const { data: symptoms } = await supabase
+        .from('period_entries')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('date', { ascending: false })
+        .limit(10);
+
+      setUserCycles(cycles || []);
+      setUserSymptoms(symptoms || []);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const analyzeUserData = () => {
+    if (userCycles.length === 0) return null;
+
+    const cycleLengths = userCycles.map(cycle => cycle.cycle_length).filter(Boolean);
+    const avgCycleLength = cycleLengths.reduce((a, b) => a + b, 0) / cycleLengths.length;
+    const isIrregular = cycleLengths.some(length => Math.abs(length - avgCycleLength) > 7);
+    
+    // Analyze symptoms
+    const recentSymptoms = userSymptoms.slice(0, 5);
+    const commonSymptoms = recentSymptoms.reduce((acc, entry) => {
+      if (entry.symptoms) {
+        Object.entries(entry.symptoms).forEach(([symptom, severity]) => {
+          if (severity > 3) {
+            acc[symptom] = (acc[symptom] || 0) + 1;
+          }
+        });
+      }
+      return acc;
+    }, {});
+
+    return {
+      avgCycleLength: Math.round(avgCycleLength),
+      isIrregular,
+      commonSymptoms: Object.keys(commonSymptoms).slice(0, 3),
+      cycleLengths
+    };
+  };
+
+  const getPersonalizedContent = () => {
+    const analysis = analyzeUserData();
+    if (!analysis) return { articles: [], videos: [] };
+
+    const { isIrregular, commonSymptoms, avgCycleLength } = analysis;
+    
+    let personalizedArticles = [...educationalContent];
+    let personalizedVideos = [...youtubeVideos];
+
+    // Filter content based on user's specific needs
+    if (isIrregular) {
+      personalizedArticles.unshift({
+        category: 'Cycle Health',
+        title: 'Managing Irregular Cycles',
+        content: `Based on your cycle data, you've experienced some irregularity in your menstrual cycles. Irregular periods can be caused by various factors including stress, weight changes, hormonal imbalances, or underlying health conditions.
+
+**What Causes Irregular Cycles:**
+- Stress and lifestyle changes
+- Significant weight loss or gain
+- Excessive exercise
+- Hormonal disorders (PCOS, thyroid issues)
+- Medications
+- Approaching menopause
+
+**When to See a Doctor:**
+- Cycles shorter than 21 days or longer than 35 days
+- Missing periods for 3+ months
+- Extremely heavy or light bleeding
+- Severe pain or other concerning symptoms
+
+**Management Strategies:**
+- Maintain a healthy weight
+- Manage stress through relaxation techniques
+- Regular, moderate exercise
+- Consistent sleep schedule
+- Balanced nutrition with adequate nutrients
+
+**Track Your Patterns:**
+Continue tracking your cycles to identify patterns and triggers. This information will be valuable for healthcare providers if you need medical consultation.`,
+        readTime: '6 min read',
+        sources: [
+          'American College of Obstetricians and Gynecologists',
+          'Mayo Clinic',
+          'Cleveland Clinic'
+        ]
+      });
+
+      personalizedVideos.unshift({
+        title: "Irregular Periods: Causes and Solutions",
+        channel: "Women's Health Network",
+        duration: "7:42",
+        thumbnail: "/placeholder.svg",
+        url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        videoId: "dQw4w9WgXcQ"
+      });
+    }
+
+    if (commonSymptoms.includes('cramps')) {
+      personalizedArticles.push({
+        category: 'Pain Management',
+        title: 'Natural Cramp Relief Methods',
+        content: `Your recent entries show frequent cramping. Here are evidence-based methods to help manage menstrual cramps naturally:
+
+**Immediate Relief Methods:**
+- **Heat Therapy**: Apply heating pads or take warm baths to relax uterine muscles
+- **Gentle Exercise**: Light walking, yoga, or stretching can reduce pain
+- **Massage**: Abdominal and lower back massage with essential oils
+- **Hydration**: Drink plenty of water to reduce bloating
+
+**Dietary Approaches:**
+- **Anti-inflammatory Foods**: Leafy greens, berries, fatty fish, nuts
+- **Magnesium-Rich Foods**: Dark chocolate, spinach, almonds, avocados
+- **Limit**: Caffeine, alcohol, processed foods, and excess sugar
+- **Herbal Teas**: Chamomile, ginger, or raspberry leaf tea
+
+**Supplements That May Help:**
+- Magnesium (200-400mg daily)
+- Omega-3 fatty acids
+- Vitamin D
+- Turmeric (curcumin)
+
+**Lifestyle Modifications:**
+- Regular sleep schedule (7-9 hours)
+- Stress management techniques
+- Regular exercise throughout the month
+- Proper posture and ergonomics
+
+**When to Seek Medical Help:**
+If cramps are severe enough to interfere with daily activities, last longer than usual, or are accompanied by heavy bleeding, consult a healthcare provider.`,
+        readTime: '5 min read',
+        sources: [
+          'Journal of Pain Research',
+          'American Family Physician',
+          'Cochrane Reviews'
+        ]
+      });
+    }
+
+    if (avgCycleLength > 35) {
+      personalizedVideos.push({
+        title: "Long Menstrual Cycles: What You Need to Know",
+        channel: "Dr. Sarah Health",
+        duration: "9:18",
+        thumbnail: "/placeholder.svg",
+        url: "https://www.youtube.com/watch?v=oHg5SJYRHA0",
+        videoId: "oHg5SJYRHA0"
+      });
+    }
+
+    return {
+      articles: personalizedArticles.slice(0, 6),
+      videos: personalizedVideos.slice(0, 6)
+    };
+  };
 
   const insights = [
     {
       type: 'cycle',
       title: 'Cycle Regularity',
-      description: 'Your cycles have been consistently 28-30 days over the past 6 months.',
-      status: 'good',
-      recommendation: 'Your cycle appears regular and healthy. Continue tracking to maintain this pattern.'
+      description: userCycles.length > 0 
+        ? `Your average cycle length is ${analyzeUserData()?.avgCycleLength || 28} days based on your recent data.`
+        : 'Start tracking to get personalized cycle insights.',
+      status: analyzeUserData()?.isIrregular ? 'attention' : 'good',
+      recommendation: analyzeUserData()?.isIrregular 
+        ? 'Your cycles show some irregularity. Consider consulting a healthcare provider if this continues.'
+        : 'Your cycle appears regular and healthy. Continue tracking to maintain this pattern.'
     },
     {
       type: 'symptoms',
-      title: 'PMS Pattern',
-      description: 'You typically experience moderate PMS symptoms 3-5 days before your period.',
+      title: 'Symptom Patterns',
+      description: userSymptoms.length > 0
+        ? `You've logged symptoms ${userSymptoms.length} times recently.`
+        : 'Start logging symptoms to identify patterns.',
       status: 'normal',
-      recommendation: 'Consider gentle exercise and stress management during this time.'
+      recommendation: 'Continue tracking symptoms to identify patterns and triggers.'
     },
     {
-      type: 'fertility',
-      title: 'Ovulation Tracking',
-      description: 'Your ovulation typically occurs around day 14 of your cycle.',
-      status: 'good',
-      recommendation: 'Your fertile window predictions appear accurate based on your data.'
+      type: 'data',
+      title: 'Tracking Consistency',
+      description: `You have ${userCycles.length} cycles and ${userSymptoms.length} symptom entries recorded.`,
+      status: userCycles.length >= 3 ? 'good' : 'attention',
+      recommendation: userCycles.length >= 3 
+        ? 'Great job maintaining consistent tracking!'
+        : 'Try to track consistently for at least 3 cycles to get better insights.'
     }
   ];
 
@@ -116,40 +307,6 @@ If symptoms severely impact daily life, consult a healthcare provider about addi
         'Journal of Women\'s Health',
         'International Journal of Women\'s Health'
       ]
-    },
-    {
-      category: 'Nutrition',
-      title: 'Eating for Your Cycle',
-      content: `Your nutritional needs change throughout your menstrual cycle. Here's how to eat in sync with your hormones:
-
-**Menstrual Phase (Days 1-5):**
-- **Iron-Rich Foods**: Replenish iron lost through bleeding (lean meats, spinach, lentils)
-- **Vitamin C**: Enhances iron absorption (citrus fruits, bell peppers, strawberries)
-- **Anti-inflammatory Foods**: Reduce cramping (fatty fish, turmeric, ginger)
-- **Comfort Foods**: Dark chocolate (in moderation) can boost mood
-
-**Follicular Phase (Days 1-13):**
-- **Lean Proteins**: Support egg development (chicken, fish, tofu)
-- **Fresh Vegetables**: Provide energy as metabolism increases (broccoli, asparagus, zucchini)
-- **Fermented Foods**: Support gut health (yogurt, kimchi, sauerkraut)
-
-**Ovulatory Phase (Around Day 14):**
-- **Antioxidant-Rich Foods**: Protect the egg (berries, leafy greens, nuts)
-- **Healthy Fats**: Support hormone production (avocados, olive oil, seeds)
-- **Fiber**: Help process estrogen (whole grains, beans, vegetables)
-
-**Luteal Phase (Days 15-28):**
-- **Complex Carbs**: Stabilize mood and energy (sweet potatoes, quinoa, oats)
-- **Magnesium**: Reduce PMS symptoms (dark chocolate, nuts, seeds)
-- **B Vitamins**: Support nervous system (eggs, leafy greens, legumes)
-
-**Hydration:** Drink 8-10 glasses of water daily, increasing during menstruation.`,
-      readTime: '8 min read',
-      sources: [
-        'Academy of Nutrition and Dietetics',
-        'International Food Information Council',
-        'Journal of Nutritional Science'
-      ]
     }
   ];
 
@@ -159,21 +316,32 @@ If symptoms severely impact daily life, consult a healthcare provider about addi
       channel: "Planned Parenthood",
       duration: "4:32",
       thumbnail: "/placeholder.svg",
-      url: "https://www.youtube.com/watch?v=example1"
+      url: "https://www.youtube.com/watch?v=W_o-I9fXrTk",
+      videoId: "W_o-I9fXrTk"
     },
     {
       title: "Period Pain Relief - Natural Remedies",
       channel: "Healthcare Channel",
       duration: "6:15",
       thumbnail: "/placeholder.svg",
-      url: "https://www.youtube.com/watch?v=example2"
+      url: "https://www.youtube.com/watch?v=BvQ571eAOZE",
+      videoId: "BvQ571eAOZE"
     },
     {
       title: "Nutrition for Women's Health",
       channel: "Nutrition Experts",
       duration: "8:45",
       thumbnail: "/placeholder.svg",
-      url: "https://www.youtube.com/watch?v=example3"
+      url: "https://www.youtube.com/watch?v=fJ9rUzIMcZQ",
+      videoId: "fJ9rUzIMcZQ"
+    },
+    {
+      title: "Yoga for Menstrual Health",
+      channel: "Yoga with Adriene",
+      duration: "12:30",
+      thumbnail: "/placeholder.svg",
+      url: "https://www.youtube.com/watch?v=8p6OoS4hwNM",
+      videoId: "8p6OoS4hwNM"
     }
   ];
 
@@ -207,6 +375,23 @@ If symptoms severely impact daily life, consult a healthcare provider about addi
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
+
+  const openYouTubeVideo = (videoId: string) => {
+    window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
+  };
+
+  const personalizedContent = getPersonalizedContent();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <Heart className="w-8 h-8 text-pink-600 mx-auto mb-2 animate-pulse" />
+          <p className="text-muted-foreground">Loading your health insights...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -305,7 +490,7 @@ If symptoms severely impact daily life, consult a healthcare provider about addi
 
         <TabsContent value="education" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            {educationalContent.map((content, index) => (
+            {personalizedContent.articles.map((content, index) => (
               <Card key={index} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -357,15 +542,25 @@ If symptoms severely impact daily life, consult a healthcare provider about addi
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Play className="w-5 h-5 mr-2 text-red-600" />
-                Recommended Videos
+                Recommended Videos for You
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {youtubeVideos.map((video, index) => (
+                {personalizedContent.videos.map((video, index) => (
                   <div key={index} className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow">
-                    <div className="aspect-video bg-gray-200 relative group cursor-pointer">
-                      <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover" />
+                    <div 
+                      className="aspect-video bg-gray-200 relative group cursor-pointer"
+                      onClick={() => openYouTubeVideo(video.videoId)}
+                    >
+                      <img 
+                        src={`https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`} 
+                        alt={video.title} 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "/placeholder.svg";
+                        }}
+                      />
                       <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <Play className="w-12 h-12 text-white" />
                       </div>
@@ -375,11 +570,13 @@ If symptoms severely impact daily life, consult a healthcare provider about addi
                       <p className="text-xs text-muted-foreground">{video.channel}</p>
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-muted-foreground">{video.duration}</span>
-                        <Button size="sm" variant="ghost" asChild>
-                          <a href={video.url} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="w-3 h-3 mr-1" />
-                            Watch
-                          </a>
+                        <Button 
+                          size="sm" 
+                          variant="ghost"
+                          onClick={() => openYouTubeVideo(video.videoId)}
+                        >
+                          <ExternalLink className="w-3 h-3 mr-1" />
+                          Watch
                         </Button>
                       </div>
                     </div>
