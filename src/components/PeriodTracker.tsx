@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Calendar, Plus, TrendingUp, Heart } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -88,11 +87,20 @@ const PeriodTracker = () => {
 
       if (error) throw error;
       
-      // Type assertion with proper handling of symptoms
-      const typedData = (data || []).map(entry => ({
-        ...entry,
+      // Properly type the data from Supabase
+      const typedData: PeriodEntry[] = (data || []).map(entry => ({
+        id: entry.id,
+        user_id: entry.user_id,
+        date: entry.date,
         flow_intensity: entry.flow_intensity as FlowIntensity,
-        symptoms: entry.symptoms || {}
+        notes: entry.notes || undefined,
+        period_start_date: entry.period_start_date || undefined,
+        period_end_date: entry.period_end_date || undefined,
+        symptoms: (entry.symptoms && typeof entry.symptoms === 'object' && !Array.isArray(entry.symptoms)) 
+          ? entry.symptoms as { cramps?: number; mood?: number; energy?: number; headache?: number; bloating?: number; }
+          : {},
+        created_at: entry.created_at,
+        updated_at: entry.updated_at
       }));
       
       setEntries(typedData);
@@ -381,7 +389,7 @@ const PeriodTracker = () => {
         </TabsContent>
 
         <TabsContent value="prediction" className="space-y-6">
-          <CyclePrediction entries={entries} cycles={cycles} />
+          <CyclePrediction />
         </TabsContent>
       </Tabs>
     </div>
