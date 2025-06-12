@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { MessageSquare, Users, Plus, Heart, MessageCircle, ThumbsUp, ThumbsDown, Send, Hash } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,75 +48,16 @@ const Community = () => {
   // Reply form state
   const [replyContent, setReplyContent] = useState('');
 
-  // Mock data - in a real app, this would come from your database
-  const [posts, setPosts] = useState<Post[]>([
-    {
-      id: '1',
-      title: 'Severe cramps during first day - any advice?',
-      content: 'I experience really intense cramps on my first day. Heat pads help a bit but wondering if anyone has other natural remedies that work?',
-      author: 'Sarah M.',
-      tags: ['cramps', 'pain-relief', 'natural-remedies'],
-      likes: 24,
-      dislikes: 2,
-      replies: 8,
-      createdAt: '2024-01-15T10:30:00Z',
-      userVote: null
-    },
-    {
-      id: '2',
-      title: 'Irregular cycles after stress - is this normal?',
-      content: 'Been going through a stressful period at work and my cycles have become irregular. Has anyone experienced similar? How long did it take to normalize?',
-      author: 'Emma K.',
-      tags: ['irregular-cycles', 'stress', 'hormones'],
-      likes: 18,
-      dislikes: 0,
-      replies: 12,
-      createdAt: '2024-01-14T15:45:00Z',
-      userVote: null
-    },
-    {
-      id: '3',
-      title: 'Best period tracking apps?',
-      content: 'Looking for recommendations for period tracking apps. What features do you find most helpful?',
-      author: 'Lisa R.',
-      tags: ['apps', 'tracking', 'recommendations'],
-      likes: 31,
-      dislikes: 1,
-      replies: 15,
-      createdAt: '2024-01-13T09:20:00Z',
-      userVote: 'like'
-    }
-  ]);
-
-  const [replies, setReplies] = useState<Reply[]>([
-    {
-      id: 'r1',
-      postId: '1',
-      content: 'I swear by ginger tea and gentle yoga poses like child\'s pose. Also, magnesium supplements have been a game changer for me!',
-      author: 'Jennifer L.',
-      likes: 12,
-      dislikes: 0,
-      createdAt: '2024-01-15T11:15:00Z',
-      userVote: null
-    },
-    {
-      id: 'r2',
-      postId: '1',
-      content: 'Heat therapy combined with light exercise works for me. Even a 10-minute walk can help reduce the intensity.',
-      author: 'Maya P.',
-      likes: 8,
-      dislikes: 1,
-      createdAt: '2024-01-15T12:00:00Z',
-      userVote: null
-    }
-  ]);
+  // Start with empty posts array - no default posts
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [replies, setReplies] = useState<Reply[]>([]);
 
   const categories = [
     { id: 'all', name: 'All Posts', count: posts.length },
     { id: 'symptoms', name: 'Symptoms & Pain', count: posts.filter(p => p.tags.some(tag => ['cramps', 'pain-relief', 'symptoms'].includes(tag))).length },
     { id: 'cycles', name: 'Cycle Questions', count: posts.filter(p => p.tags.some(tag => ['irregular-cycles', 'tracking'].includes(tag))).length },
     { id: 'lifestyle', name: 'Lifestyle & Tips', count: posts.filter(p => p.tags.some(tag => ['natural-remedies', 'apps', 'recommendations'].includes(tag))).length },
-    { id: 'support', name: 'Support & Encouragement', count: 0 }
+    { id: 'support', name: 'Support & Encouragement', count: posts.filter(p => p.tags.some(tag => ['support', 'encouragement', 'mental-health'].includes(tag))).length }
   ];
 
   const handleCreatePost = () => {

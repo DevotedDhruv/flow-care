@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, Circle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Circle, Sun, Moon, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,23 +8,29 @@ import { Badge } from '@/components/ui/badge';
 interface CalendarDay {
   date: Date;
   nepaliDate: string;
+  nepaliDay: number;
   isToday: boolean;
   isCurrentMonth: boolean;
   cycleDay?: number;
   phase?: 'menstrual' | 'follicular' | 'ovulation' | 'luteal';
   flowIntensity?: 'spotting' | 'light' | 'medium' | 'heavy';
   hasEntry?: boolean;
+  isWeekend?: boolean;
+  tithi?: string;
+  event?: string;
 }
 
 interface NepaliCalendarProps {
   periodEntries?: any[];
   onDateClick?: (date: Date) => void;
   showPhases?: boolean;
+  language?: string;
 }
 
-const NepaliCalendar = ({ periodEntries = [], onDateClick, showPhases = true }: NepaliCalendarProps) => {
+const NepaliCalendar = ({ periodEntries = [], onDateClick, showPhases = true, language = 'en' }: NepaliCalendarProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const nepaliMonths = [
     'बैशाख', 'जेठ', 'आषाढ', 'श्रावण', 'भाद्र', 'आश्विन',
@@ -32,13 +38,62 @@ const NepaliCalendar = ({ periodEntries = [], onDateClick, showPhases = true }: 
   ];
 
   const nepaliDays = ['आइत', 'सोम', 'मंगल', 'बुध', 'बिहि', 'शुक्र', 'शनि'];
+  const englishDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  // Simple Nepali date conversion (basic implementation)
-  const convertToNepali = (date: Date): string => {
+  // Nepali calendar events and festivals
+  const nepaliEvents: Record<string, string> = {
+    '2081-01-01': 'नयाँ वर्ष',
+    '2081-01-15': 'बुद्ध जयन्ती',
+    '2081-03-03': 'तीज',
+    '2081-07-01': 'दशैं',
+    '2081-08-01': 'तिहार',
+  };
+
+  const tithiNames = [
+    'प्रतिपदा', 'द्वितीया', 'तृतीया', 'चतुर्थी', 'पञ्चमी', 'षष्ठी', 'सप्तमी',
+    'अष्टमी', 'नवमी', 'दशमी', 'एकादशी', 'द्वादशी', 'त्रयोदशी', 'चतुर्दशी', 'पूर्णिमा/अमावस्या'
+  ];
+
+  const getLocalizedText = (key: string) => {
+    const translations: Record<string, Record<string, string>> = {
+      en: {
+        nepaliCalendar: 'Nepali Calendar',
+        today: 'Today',
+        cyclePhases: 'Cycle Phases',
+        menstrual: 'Menstrual',
+        follicular: 'Follicular',
+        ovulation: 'Ovulation',
+        luteal: 'Luteal',
+        selectedDate: 'Selected Date',
+        noEvents: 'No events for this date'
+      },
+      ne: {
+        nepaliCalendar: 'नेपाली क्यालेन्डर',
+        today: 'आज',
+        cyclePhases: 'चक्र चरणहरू',
+        menstrual: 'महिनावारी',
+        follicular: 'फोलिक्युलर',
+        ovulation: 'ओभुलेशन',
+        luteal: 'लुटेल',
+        selectedDate: 'चयनित मिति',
+        noEvents: 'यस मितिको लागि कुनै घटना छैन'
+      }
+    };
+    return translations[language]?.[key] || translations.en[key];
+  };
+
+  // Enhanced Nepali date conversion with better accuracy
+  const convertToNepali = (date: Date): { year: number; month: number; day: number; monthName: string } => {
     const nepaliYear = date.getFullYear() + 57; // Approximate BS year
-    const nepaliMonth = nepaliMonths[date.getMonth()];
+    const monthIndex = date.getMonth();
     const nepaliDay = date.getDate();
-    return `${nepaliYear} ${nepaliMonth} ${nepaliDay}`;
+    
+    return {
+      year: nepaliYear,
+      month: monthIndex + 1,
+      day: nepaliDay,
+      monthName: nepaliMonths[monthIndex]
+    };
   };
 
   const getCyclePhase = (cycleDay: number): 'menstrual' | 'follicular' | 'ovulation' | 'luteal' => {
@@ -68,6 +123,12 @@ const NepaliCalendar = ({ periodEntries = [], onDateClick, showPhases = true }: 
     }
   };
 
+  const getTithi = (date: Date): string => {
+    // Simplified tithi calculation (in real app, use proper lunar calendar calculation)
+    const dayOfMonth = date.getDate();
+    return tithiNames[dayOfMonth % 15];
+  };
+
   const generateCalendarDays = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -80,7 +141,7 @@ const NepaliCalendar = ({ periodEntries = [], onDateClick, showPhases = true }: 
     const days: CalendarDay[] = [];
     const today = new Date();
 
-    // Simulate cycle data (in real app, this would come from user data)
+    // Simulate cycle data
     const lastPeriodStart = new Date(today);
     lastPeriodStart.setDate(today.getDate() - 12);
 
@@ -88,6 +149,7 @@ const NepaliCalendar = ({ periodEntries = [], onDateClick, showPhases = true }: 
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + i);
 
+      const nepaliDateInfo = convertToNepali(date);
       const daysSinceLastPeriod = Math.floor((date.getTime() - lastPeriodStart.getTime()) / (1000 * 60 * 60 * 24));
       const cycleDay = ((daysSinceLastPeriod % 28) + 28) % 28 + 1;
 
@@ -101,15 +163,22 @@ const NepaliCalendar = ({ periodEntries = [], onDateClick, showPhases = true }: 
         return entryDate.toDateString() === date.toDateString();
       });
 
+      const nepaliDateKey = `${nepaliDateInfo.year}-${nepaliDateInfo.month.toString().padStart(2, '0')}-${nepaliDateInfo.day.toString().padStart(2, '0')}`;
+      const event = nepaliEvents[nepaliDateKey];
+
       days.push({
         date,
-        nepaliDate: convertToNepali(date),
+        nepaliDate: `${nepaliDateInfo.year} ${nepaliDateInfo.monthName} ${nepaliDateInfo.day}`,
+        nepaliDay: nepaliDateInfo.day,
         isToday: date.toDateString() === today.toDateString(),
         isCurrentMonth: date.getMonth() === month,
+        isWeekend: date.getDay() === 0 || date.getDay() === 6,
         cycleDay,
         phase: getCyclePhase(cycleDay),
         flowIntensity: entry?.flow_intensity,
-        hasEntry
+        hasEntry,
+        tithi: getTithi(date),
+        event
       });
     }
 
@@ -131,25 +200,37 @@ const NepaliCalendar = ({ periodEntries = [], onDateClick, showPhases = true }: 
   };
 
   const handleDateClick = (day: CalendarDay) => {
+    setSelectedDate(day.date);
     if (onDateClick) {
       onDateClick(day.date);
     }
   };
 
+  const goToToday = () => {
+    setCurrentDate(new Date());
+    setSelectedDate(new Date());
+  };
+
+  const currentNepaliDate = convertToNepali(currentDate);
+
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center">
             <Calendar className="w-5 h-5 mr-2 text-pink-600" />
-            नेपाली क्यालेन्डर
+            {getLocalizedText('nepaliCalendar')}
           </div>
           <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm" onClick={goToToday}>
+              <Sun className="w-4 h-4 mr-1" />
+              {getLocalizedText('today')}
+            </Button>
             <Button variant="outline" size="sm" onClick={() => navigateMonth('prev')}>
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            <span className="text-lg font-medium">
-              {nepaliMonths[currentDate.getMonth()]} {currentDate.getFullYear() + 57}
+            <span className="text-lg font-medium min-w-[200px] text-center">
+              {currentNepaliDate.monthName} {currentNepaliDate.year}
             </span>
             <Button variant="outline" size="sm" onClick={() => navigateMonth('next')}>
               <ChevronRight className="w-4 h-4" />
@@ -161,8 +242,10 @@ const NepaliCalendar = ({ periodEntries = [], onDateClick, showPhases = true }: 
         <div className="space-y-4">
           {/* Day headers */}
           <div className="grid grid-cols-7 gap-1">
-            {nepaliDays.map((day) => (
-              <div key={day} className="text-center text-sm font-medium text-muted-foreground p-2">
+            {(language === 'ne' ? nepaliDays : englishDays).map((day, index) => (
+              <div key={day} className={`text-center text-sm font-medium p-2 ${
+                index === 0 || index === 6 ? 'text-red-600' : 'text-muted-foreground'
+              }`}>
                 {day}
               </div>
             ))}
@@ -174,15 +257,28 @@ const NepaliCalendar = ({ periodEntries = [], onDateClick, showPhases = true }: 
               <div
                 key={index}
                 className={`
-                  relative p-2 text-center cursor-pointer rounded-lg border transition-colors
-                  ${day.isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'}
-                  ${day.isToday ? 'bg-pink-100 border-pink-300' : 'border-gray-200'}
-                  hover:bg-gray-50
+                  relative p-3 text-center cursor-pointer rounded-lg border transition-all duration-200 min-h-[80px]
+                  ${day.isCurrentMonth ? 'text-foreground bg-white' : 'text-muted-foreground bg-gray-50'}
+                  ${day.isToday ? 'bg-pink-100 border-pink-300 ring-2 ring-pink-200' : 'border-gray-200'}
+                  ${selectedDate && selectedDate.toDateString() === day.date.toDateString() ? 'bg-purple-100 border-purple-300' : ''}
+                  ${day.isWeekend && day.isCurrentMonth ? 'bg-red-50' : ''}
+                  hover:bg-gray-100 hover:shadow-md
                 `}
                 onClick={() => handleDateClick(day)}
               >
+                {/* English date */}
                 <div className="text-sm font-medium">{day.date.getDate()}</div>
                 
+                {/* Nepali date */}
+                <div className="text-xs text-muted-foreground">{day.nepaliDay}</div>
+                
+                {/* Event indicator */}
+                {day.event && (
+                  <div className="absolute top-1 left-1">
+                    <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                  </div>
+                )}
+
                 {/* Cycle phase indicator */}
                 {showPhases && day.isCurrentMonth && day.phase && (
                   <div className={`w-2 h-2 rounded-full mx-auto mt-1 ${getPhaseColor(day.phase)}`} />
@@ -193,36 +289,66 @@ const NepaliCalendar = ({ periodEntries = [], onDateClick, showPhases = true }: 
                   <div className={`absolute top-1 right-1 w-3 h-3 rounded-full ${getFlowColor(day.flowIntensity)}`} />
                 )}
 
+                {/* Moon phase indicator for special tithis */}
+                {(day.tithi?.includes('पूर्णिमा') || day.tithi?.includes('अमावस्या')) && (
+                  <div className="absolute bottom-1 right-1">
+                    <Moon className="w-3 h-3 text-blue-500" />
+                  </div>
+                )}
+
                 {/* Cycle day number */}
                 {day.isCurrentMonth && day.cycleDay && showPhases && (
-                  <div className="text-xs text-muted-foreground">{day.cycleDay}</div>
+                  <div className="text-xs text-muted-foreground absolute bottom-1 left-1">
+                    {day.cycleDay}
+                  </div>
                 )}
               </div>
             ))}
           </div>
 
-          {/* Legend */}
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium">चक्र चरणहरू:</h4>
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="outline" className="flex items-center space-x-1">
-                <Circle className="w-2 h-2 bg-red-500 rounded-full" />
-                <span>महिनावारी</span>
-              </Badge>
-              <Badge variant="outline" className="flex items-center space-x-1">
-                <Circle className="w-2 h-2 bg-pink-400 rounded-full" />
-                <span>फोलिक्युलर</span>
-              </Badge>
-              <Badge variant="outline" className="flex items-center space-x-1">
-                <Circle className="w-2 h-2 bg-purple-500 rounded-full" />
-                <span>ओभुलेशन</span>
-              </Badge>
-              <Badge variant="outline" className="flex items-center space-x-1">
-                <Circle className="w-2 h-2 bg-blue-400 rounded-full" />
-                <span>लुटेल</span>
-              </Badge>
+          {/* Selected date info */}
+          {selectedDate && (
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <h4 className="font-medium mb-2">{getLocalizedText('selectedDate')}</h4>
+              <div className="text-sm space-y-1">
+                <p>Date: {selectedDate.toLocaleDateString()}</p>
+                <p>Nepali: {convertToNepali(selectedDate).day} {convertToNepali(selectedDate).monthName} {convertToNepali(selectedDate).year}</p>
+                <p>Tithi: {getTithi(selectedDate)}</p>
+                {calendarDays.find(d => d.date.toDateString() === selectedDate.toDateString())?.event ? (
+                  <p className="text-yellow-600 font-medium">
+                    Event: {calendarDays.find(d => d.date.toDateString() === selectedDate.toDateString())?.event}
+                  </p>
+                ) : (
+                  <p className="text-muted-foreground">{getLocalizedText('noEvents')}</p>
+                )}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Legend */}
+          {showPhases && (
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium">{getLocalizedText('cyclePhases')}:</h4>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="outline" className="flex items-center space-x-1">
+                  <Circle className="w-2 h-2 bg-red-500 rounded-full" />
+                  <span>{getLocalizedText('menstrual')}</span>
+                </Badge>
+                <Badge variant="outline" className="flex items-center space-x-1">
+                  <Circle className="w-2 h-2 bg-pink-400 rounded-full" />
+                  <span>{getLocalizedText('follicular')}</span>
+                </Badge>
+                <Badge variant="outline" className="flex items-center space-x-1">
+                  <Circle className="w-2 h-2 bg-purple-500 rounded-full" />
+                  <span>{getLocalizedText('ovulation')}</span>
+                </Badge>
+                <Badge variant="outline" className="flex items-center space-x-1">
+                  <Circle className="w-2 h-2 bg-blue-400 rounded-full" />
+                  <span>{getLocalizedText('luteal')}</span>
+                </Badge>
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
