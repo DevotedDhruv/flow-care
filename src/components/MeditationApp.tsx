@@ -1,17 +1,30 @@
-
 import { useState, useEffect } from 'react';
-import { Play, Pause, RotateCcw, Volume2, Moon, Sun, Heart, Zap } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, Moon, Sun, Heart, Zap, Music, Mic } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const MeditationApp = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [selectedMeditation, setSelectedMeditation] = useState<any>(null);
   const [volume, setVolume] = useState([75]);
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
+  const [backgroundSound, setBackgroundSound] = useState('rain');
+  const [soundVolume, setSoundVolume] = useState([30]);
+
+  const backgroundSounds = [
+    { value: 'rain', label: 'Rain' },
+    { value: 'ocean', label: 'Ocean Waves' },
+    { value: 'forest', label: 'Forest Sounds' },
+    { value: 'birds', label: 'Bird Songs' },
+    { value: 'white-noise', label: 'White Noise' },
+    { value: 'bells', label: 'Tibetan Bells' },
+    { value: 'none', label: 'Silence' }
+  ];
 
   const meditations = {
     cramps: [
@@ -22,7 +35,15 @@ const MeditationApp = () => {
         instructor: "Dr. Sarah Jones",
         benefits: ["Reduces pain perception", "Promotes relaxation", "Improves circulation"],
         icon: Heart,
-        audioFile: "period-pain-relief.mp3"
+        audioFile: "period-pain-relief.mp3",
+        voiceScript: [
+          "Welcome to this healing meditation for period pain relief.",
+          "Find a comfortable position and close your eyes.",
+          "Take a deep breath in through your nose...",
+          "And slowly exhale through your mouth, releasing any tension.",
+          "Imagine warm, healing light flowing to your lower abdomen.",
+          "With each breath, feel the pain gently melting away."
+        ]
       },
       {
         title: "Body Scan for Comfort",
@@ -31,7 +52,14 @@ const MeditationApp = () => {
         instructor: "Maya Chen",
         benefits: ["Releases muscle tension", "Increases body awareness", "Promotes healing"],
         icon: Moon,
-        audioFile: "body-scan-comfort.mp3"
+        audioFile: "body-scan-comfort.mp3",
+        voiceScript: [
+          "Let's begin this gentle body scan meditation.",
+          "Start by noticing your feet, allowing them to relax completely.",
+          "Move your attention to your legs, releasing any tightness.",
+          "Feel your hips and pelvis softening with each breath.",
+          "Continue this journey of relaxation through your entire body."
+        ]
       }
     ],
     pms: [
@@ -42,7 +70,14 @@ const MeditationApp = () => {
         instructor: "Dr. Amanda Lee",
         benefits: ["Balances emotions", "Reduces irritability", "Increases self-awareness"],
         icon: Sun,
-        audioFile: "emotional-balance.mp3"
+        audioFile: "emotional-balance.mp3",
+        voiceScript: [
+          "This meditation will help you find emotional balance and peace.",
+          "Acknowledge any difficult emotions without judgment.",
+          "You are not your emotions - you are the observer of them.",
+          "Breathe compassion into your heart.",
+          "Feel yourself returning to a state of calm equilibrium."
+        ]
       },
       {
         title: "Stress Release",
@@ -51,7 +86,14 @@ const MeditationApp = () => {
         instructor: "Jennifer Smith",
         benefits: ["Reduces stress hormones", "Calms nervous system", "Improves mood"],
         icon: Zap,
-        audioFile: "stress-release.mp3"
+        audioFile: "stress-release.mp3",
+        voiceScript: [
+          "Let's quickly release stress and tension from your body and mind.",
+          "Take three deep, cleansing breaths.",
+          "Imagine stress leaving your body with each exhale.",
+          "Feel lightness and peace filling the space where stress once was.",
+          "You are calm, centered, and in control."
+        ]
       }
     ],
     sleep: [
@@ -62,7 +104,14 @@ const MeditationApp = () => {
         instructor: "Dr. Rachel Green",
         benefits: ["Improves sleep quality", "Regulates circadian rhythm", "Balances hormones"],
         icon: Moon,
-        audioFile: "cycle-sleep-support.mp3"
+        audioFile: "cycle-sleep-support.mp3",
+        voiceScript: [
+          "This meditation will guide you into peaceful, restorative sleep.",
+          "Let your body sink deeply into your bed.",
+          "Release the day's worries with each gentle breath.",
+          "Feel yourself drifting into a state of deep relaxation.",
+          "Allow sleep to come naturally and peacefully."
+        ]
       },
       {
         title: "Deep Rest Restoration",
@@ -71,7 +120,14 @@ const MeditationApp = () => {
         instructor: "Lisa Park",
         benefits: ["Promotes deep rest", "Supports hormone regulation", "Enhances recovery"],
         icon: Moon,
-        audioFile: "deep-rest.mp3"
+        audioFile: "deep-rest.mp3",
+        voiceScript: [
+          "Welcome to this extended meditation for deep restoration.",
+          "This is your time to completely let go and restore.",
+          "Feel your nervous system calming with each moment.",
+          "Your body knows how to heal and balance itself.",
+          "Rest in this state of perfect peace and restoration."
+        ]
       }
     ],
     energy: [
@@ -82,7 +138,14 @@ const MeditationApp = () => {
         instructor: "Alex Rivera",
         benefits: ["Increases energy", "Improves focus", "Boosts motivation"],
         icon: Sun,
-        audioFile: "morning-energy.mp3"
+        audioFile: "morning-energy.mp3",
+        voiceScript: [
+          "Good morning! Let's awaken your inner energy and vitality.",
+          "Feel the life force energy flowing through every cell.",
+          "Imagine bright, golden light filling your entire being.",
+          "You are energized, focused, and ready for the day ahead.",
+          "Carry this vibrant energy with you."
+        ]
       },
       {
         title: "Cycle Empowerment",
@@ -91,7 +154,14 @@ const MeditationApp = () => {
         instructor: "Dr. Maria Santos",
         benefits: ["Builds self-confidence", "Embraces femininity", "Increases body positivity"],
         icon: Heart,
-        audioFile: "cycle-empowerment.mp3"
+        audioFile: "cycle-empowerment.mp3",
+        voiceScript: [
+          "This meditation celebrates the power and wisdom of your feminine cycle.",
+          "Your body is wise and knows exactly what it needs.",
+          "Feel gratitude for this amazing vessel that carries you.",
+          "You are powerful, beautiful, and perfectly designed.",
+          "Embrace your cycle as a source of strength and wisdom."
+        ]
       }
     ]
   };
@@ -201,7 +271,7 @@ const MeditationApp = () => {
         ))}
       </Tabs>
 
-      {/* Meditation Player */}
+      {/* Enhanced Meditation Player */}
       {selectedMeditation && (
         <Card>
           <CardHeader>
@@ -212,6 +282,81 @@ const MeditationApp = () => {
             <p className="text-sm text-muted-foreground">by {selectedMeditation.instructor}</p>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Audio Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Audio Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Voice Guidance Toggle */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Mic className="w-4 h-4" />
+                    <span className="text-sm font-medium">Voice Guidance</span>
+                  </div>
+                  <Button
+                    variant={isVoiceEnabled ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setIsVoiceEnabled(!isVoiceEnabled)}
+                  >
+                    {isVoiceEnabled ? "On" : "Off"}
+                  </Button>
+                </div>
+
+                {/* Background Sound Selection */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Background Sound</label>
+                  <Select value={backgroundSound} onValueChange={setBackgroundSound}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select background sound" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {backgroundSounds.map((sound) => (
+                        <SelectItem key={sound.value} value={sound.value}>
+                          {sound.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Sound Volume */}
+                {backgroundSound !== 'none' && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Music className="w-4 h-4" />
+                        <span className="text-sm">Background Volume</span>
+                      </div>
+                      <span className="text-sm text-muted-foreground">{soundVolume[0]}%</span>
+                    </div>
+                    <Slider
+                      value={soundVolume}
+                      onValueChange={setSoundVolume}
+                      max={100}
+                      step={1}
+                    />
+                  </div>
+                )}
+
+                {/* Voice Volume */}
+                {isVoiceEnabled && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Voice Volume</span>
+                      <span className="text-sm text-muted-foreground">{volume[0]}%</span>
+                    </div>
+                    <Slider
+                      value={volume}
+                      onValueChange={setVolume}
+                      max={100}
+                      step={1}
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Progress Bar */}
             <div className="space-y-2">
               <div className="flex justify-between text-sm text-muted-foreground">
@@ -244,15 +389,40 @@ const MeditationApp = () => {
               </Button>
               <div className="flex items-center space-x-2">
                 <Volume2 className="w-4 h-4 text-muted-foreground" />
-                <Slider
-                  value={volume}
-                  onValueChange={setVolume}
-                  max={100}
-                  step={1}
-                  className="w-20"
-                />
+                <span className="text-sm text-muted-foreground">Master</span>
               </div>
             </div>
+
+            {/* Current Settings Display */}
+            <div className="flex flex-wrap gap-2 justify-center">
+              {isVoiceEnabled && (
+                <Badge variant="outline">🎤 Voice guidance</Badge>
+              )}
+              {backgroundSound !== 'none' && (
+                <Badge variant="outline">🎵 {backgroundSounds.find(s => s.value === backgroundSound)?.label}</Badge>
+              )}
+            </div>
+
+            {/* Voice Script Preview */}
+            {isVoiceEnabled && selectedMeditation.voiceScript && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Volume2 className="w-5 h-5" />
+                    Meditation Script Preview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {selectedMeditation.voiceScript.map((line: string, idx: number) => (
+                      <p key={idx} className="text-sm text-muted-foreground italic">
+                        "{line}"
+                      </p>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Session Info */}
             <div className="text-center space-y-2">
