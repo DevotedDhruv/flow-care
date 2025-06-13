@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BookOpen, TrendingUp, AlertCircle, Heart, Info, ExternalLink, Play } from 'lucide-react';
+import { BookOpen, TrendingUp, AlertCircle, Heart, Info, ExternalLink, Play, Dumbbell, Brain } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import ExerciseLibrary from './ExerciseLibrary';
+import MeditationApp from './MeditationApp';
 
 const HealthInsights = () => {
   const [selectedArticle, setSelectedArticle] = useState<any>(null);
@@ -244,68 +246,6 @@ Understanding these phases can help you better predict your periods, identify yo
         'Mayo Clinic',
         'Harvard Health Publishing'
       ]
-    },
-    {
-      category: 'Fertility',
-      title: 'Ovulation Signs and Symptoms',
-      content: `Recognizing ovulation signs can help you understand your fertility and menstrual cycle better. Here are key indicators:
-
-**Physical Signs:**
-- **Cervical Mucus Changes**: Around ovulation, cervical mucus becomes clear, stretchy, and egg-white-like
-- **Basal Body Temperature**: A slight rise (0.5-1°F) occurs after ovulation
-- **Ovulation Pain**: Some women feel mild pain on one side of the abdomen (mittelschmerz)
-- **Breast Tenderness**: Hormonal changes may cause breast sensitivity
-
-**Other Indicators:**
-- **Increased Libido**: Natural hormone fluctuations may increase sex drive
-- **Heightened Senses**: Some women report enhanced taste or smell
-- **Mood Changes**: You might feel more energetic or confident
-
-**Tracking Methods:**
-- Use ovulation predictor kits (OPKs) to detect LH surges
-- Track basal body temperature daily
-- Monitor cervical mucus consistency
-- Use fertility tracking apps for pattern recognition
-
-Remember, ovulation typically occurs 12-16 days before your next period, regardless of cycle length.`,
-      readTime: '7 min read',
-      sources: [
-        'American Pregnancy Association',
-        'Cleveland Clinic',
-        'Planned Parenthood'
-      ]
-    },
-    {
-      category: 'Wellness',
-      title: 'Managing PMS Naturally',
-      content: `Premenstrual Syndrome (PMS) affects up to 75% of women. Natural remedies can significantly reduce symptoms:
-
-**Dietary Approaches:**
-- **Reduce Sodium**: Lower salt intake to minimize bloating and water retention
-- **Limit Caffeine**: Reduces breast tenderness and anxiety
-- **Increase Calcium**: 1,200mg daily may reduce PMS symptoms by 48%
-- **Add Magnesium**: 200-400mg daily can help with cramps and mood
-- **Complex Carbohydrates**: Help stabilize blood sugar and mood
-
-**Lifestyle Changes:**
-- **Regular Exercise**: 30 minutes of aerobic activity 3-4 times weekly
-- **Stress Management**: Practice yoga, meditation, or deep breathing
-- **Adequate Sleep**: 7-9 hours nightly supports hormone balance
-- **Limit Alcohol**: Can worsen PMS symptoms and mood swings
-
-**Herbal Remedies:**
-- **Chasteberry (Vitex)**: May help balance hormones
-- **Evening Primrose Oil**: Rich in GLA, may reduce breast pain
-- **Turmeric**: Anti-inflammatory properties may reduce cramping
-
-**When to Seek Help:**
-If symptoms severely impact daily life, consult a healthcare provider about additional treatment options.`,
-      readTime: '6 min read',
-      sources: [
-        'National Institute of Mental Health',
-        'Journal of Women\'s Health',
-        'International Journal of Women\'s Health'
-      ]
     }
   ];
 
@@ -317,30 +257,6 @@ If symptoms severely impact daily life, consult a healthcare provider about addi
       thumbnail: "/placeholder.svg",
       url: "https://www.youtube.com/watch?v=W_o-I9fXrTk",
       videoId: "W_o-I9fXrTk"
-    },
-    {
-      title: "Period Pain Relief - Natural Remedies",
-      channel: "Healthcare Channel",
-      duration: "6:15",
-      thumbnail: "/placeholder.svg",
-      url: "https://www.youtube.com/watch?v=BvQ571eAOZE",
-      videoId: "BvQ571eAOZE"
-    },
-    {
-      title: "Nutrition for Women's Health",
-      channel: "Nutrition Experts",
-      duration: "8:45",
-      thumbnail: "/placeholder.svg",
-      url: "https://www.youtube.com/watch?v=fJ9rUzIMcZQ",
-      videoId: "fJ9rUzIMcZQ"
-    },
-    {
-      title: "Yoga for Menstrual Health",
-      channel: "Yoga with Adriene",
-      duration: "12:30",
-      thumbnail: "/placeholder.svg",
-      url: "https://www.youtube.com/watch?v=8p6OoS4hwNM",
-      videoId: "8p6OoS4hwNM"
     }
   ];
 
@@ -395,9 +311,11 @@ If symptoms severely impact daily life, consult a healthcare provider about addi
   return (
     <div className="space-y-6">
       <Tabs defaultValue="insights" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="insights">Health Insights</TabsTrigger>
           <TabsTrigger value="education">Education</TabsTrigger>
+          <TabsTrigger value="exercise">Exercise</TabsTrigger>
+          <TabsTrigger value="meditation">Meditation</TabsTrigger>
           <TabsTrigger value="tips">Daily Tips</TabsTrigger>
         </TabsList>
 
@@ -489,7 +407,7 @@ If symptoms severely impact daily life, consult a healthcare provider about addi
 
         <TabsContent value="education" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            {personalizedContent.articles.map((content, index) => (
+            {educationalContent.map((content, index) => (
               <Card key={index} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -536,52 +454,38 @@ If symptoms severely impact daily life, consult a healthcare provider about addi
               </Card>
             ))}
           </div>
+        </TabsContent>
 
+        <TabsContent value="exercise" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Play className="w-5 h-5 mr-2 text-red-600" />
-                Recommended Videos for You
+                <Dumbbell className="w-5 h-5 mr-2 text-pink-600" />
+                Cycle-Synced Exercise Library
               </CardTitle>
+              <p className="text-sm text-muted-foreground mt-2">
+                Workouts tailored to your menstrual cycle phases for optimal results and comfort
+              </p>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {personalizedContent.videos.map((video, index) => (
-                  <div key={index} className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow">
-                    <div 
-                      className="aspect-video bg-gray-200 relative group cursor-pointer"
-                      onClick={() => openYouTubeVideo(video.videoId)}
-                    >
-                      <img 
-                        src={`https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`} 
-                        alt={video.title} 
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = "/placeholder.svg";
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Play className="w-12 h-12 text-white" />
-                      </div>
-                    </div>
-                    <div className="p-3">
-                      <h4 className="font-medium text-sm mb-1 line-clamp-2">{video.title}</h4>
-                      <p className="text-xs text-muted-foreground">{video.channel}</p>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-xs text-muted-foreground">{video.duration}</span>
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
-                          onClick={() => openYouTubeVideo(video.videoId)}
-                        >
-                          <ExternalLink className="w-3 h-3 mr-1" />
-                          Watch
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <ExerciseLibrary />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="meditation" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Brain className="w-5 h-5 mr-2 text-purple-600" />
+                Guided Meditation & Mindfulness
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-2">
+                Meditation sessions designed to support your menstrual health and emotional well-being
+              </p>
+            </CardHeader>
+            <CardContent>
+              <MeditationApp />
             </CardContent>
           </Card>
         </TabsContent>
@@ -606,34 +510,6 @@ If symptoms severely impact daily life, consult a healthcare provider about addi
                     </div>
                   );
                 })}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Recommended Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 bg-pink-50 border border-pink-200 rounded-lg">
-                  <h4 className="font-medium text-pink-800">For Your Current Cycle Phase</h4>
-                  <p className="text-sm text-pink-600 mt-1">
-                    You're in your follicular phase. This is a great time to start new projects and engage in more intense workouts.
-                  </p>
-                </div>
-                <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                  <h4 className="font-medium text-purple-800">Upcoming Period Preparation</h4>
-                  <p className="text-sm text-purple-600 mt-1">
-                    Your period is expected in 16 days. Consider stocking up on supplies and planning for self-care.
-                  </p>
-                </div>
-                <div className="p-4 bg-teal-50 border border-teal-200 rounded-lg">
-                  <h4 className="font-medium text-teal-800">Data Tracking Reminder</h4>
-                  <p className="text-sm text-teal-600 mt-1">
-                    You haven't logged symptoms for 2 days. Regular tracking helps improve prediction accuracy.
-                  </p>
-                </div>
               </div>
             </CardContent>
           </Card>
