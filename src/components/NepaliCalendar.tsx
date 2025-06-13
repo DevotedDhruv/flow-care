@@ -1,10 +1,24 @@
+
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
-const CalendarComponent = () => {
+interface PeriodEntry {
+  id: string;
+  date: string;
+  flow_intensity?: number;
+  symptoms?: Record<string, any>;
+}
+
+interface CalendarComponentProps {
+  periodEntries?: PeriodEntry[];
+  onDateClick?: (date: any) => void;
+  showPhases?: boolean;
+}
+
+const CalendarComponent = ({ periodEntries = [], onDateClick, showPhases = true }: CalendarComponentProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
@@ -36,20 +50,27 @@ const CalendarComponent = () => {
   };
 
   const isPeriodDay = (day: number) => {
-    // Mock period days for demonstration
-    const periodDays = [5, 6, 7, 8, 9];
-    return periodDays.includes(day);
+    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return periodEntries.some(entry => entry.date === dateStr && entry.flow_intensity && entry.flow_intensity > 0);
   };
 
   const isFertileDay = (day: number) => {
-    // Mock fertile days for demonstration
+    // Mock fertile days for demonstration - in real app this would be calculated
     const fertileDays = [12, 13, 14, 15, 16];
-    return fertileDays.includes(day);
+    return fertileDays.includes(day) && showPhases;
   };
 
   const isOvulationDay = (day: number) => {
-    // Mock ovulation day for demonstration
-    return day === 14;
+    // Mock ovulation day for demonstration - in real app this would be calculated
+    return day === 14 && showPhases;
+  };
+
+  const handleDateClick = (day: number) => {
+    const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+    setSelectedDate(clickedDate);
+    if (onDateClick) {
+      onDateClick(clickedDate);
+    }
   };
 
   const daysInMonth = getDaysInMonth(currentDate);
@@ -125,7 +146,7 @@ const CalendarComponent = () => {
                   ${day && isToday(currentDate, day) ? 'bg-primary text-primary-foreground' : ''}
                   ${day && selectedDate && day === selectedDate.getDate() ? 'ring-2 ring-primary' : ''}
                 `}
-                onClick={() => day && setSelectedDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))}
+                onClick={() => day && handleDateClick(day)}
               >
                 {day && (
                   <>
@@ -146,20 +167,22 @@ const CalendarComponent = () => {
           </div>
 
           {/* Legend */}
-          <div className="flex flex-wrap gap-4 text-xs">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-red-200 rounded" />
-              <span>Period</span>
+          {showPhases && (
+            <div className="flex flex-wrap gap-4 text-xs">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-red-200 rounded" />
+                <span>Period</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-green-200 rounded" />
+                <span>Fertile Window</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-green-600 rounded-full" />
+                <span>Ovulation</span>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-green-200 rounded" />
-              <span>Fertile Window</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-green-600 rounded-full" />
-              <span>Ovulation</span>
-            </div>
-          </div>
+          )}
 
           {/* Selected date info */}
           {selectedDate && (
