@@ -1,12 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { Play, Pause, RotateCcw, Volume2, Moon, Sun, Heart, Zap, Music, Mic } from 'lucide-react';
+import { Play, Pause, RotateCcw, Moon, Sun, Heart, Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -28,22 +26,8 @@ const MeditationApp = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [selectedMeditation, setSelectedMeditation] = useState<MeditationContent | null>(null);
-  const [volume, setVolume] = useState([75]);
-  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
-  const [backgroundSound, setBackgroundSound] = useState('rain');
-  const [soundVolume, setSoundVolume] = useState([30]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-
-  const backgroundSounds = [
-    { value: 'rain', label: 'Rain' },
-    { value: 'ocean', label: 'Ocean Waves' },
-    { value: 'forest', label: 'Forest Sounds' },
-    { value: 'birds', label: 'Bird Songs' },
-    { value: 'white-noise', label: 'White Noise' },
-    { value: 'bells', label: 'Tibetan Bells' },
-    { value: 'none', label: 'Silence' }
-  ];
 
   useEffect(() => {
     fetchMeditations();
@@ -131,7 +115,7 @@ const MeditationApp = () => {
 
   const getYouTubeEmbedUrl = (url: string) => {
     const videoId = url.split('v=')[1]?.split('&')[0];
-    return `https://www.youtube.com/embed/${videoId}`;
+    return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
   };
 
   if (isLoading) {
@@ -212,7 +196,7 @@ const MeditationApp = () => {
         ))}
       </Tabs>
 
-      {/* Enhanced Meditation Player */}
+      {/* Simplified Meditation Player */}
       {selectedMeditation && (
         <Card>
           <CardHeader>
@@ -225,81 +209,6 @@ const MeditationApp = () => {
             )}
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Audio Settings */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Audio Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Voice Guidance Toggle */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Mic className="w-4 h-4" />
-                    <span className="text-sm font-medium">Voice Guidance</span>
-                  </div>
-                  <Button
-                    variant={isVoiceEnabled ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setIsVoiceEnabled(!isVoiceEnabled)}
-                  >
-                    {isVoiceEnabled ? "On" : "Off"}
-                  </Button>
-                </div>
-
-                {/* Background Sound Selection */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Background Sound</label>
-                  <Select value={backgroundSound} onValueChange={setBackgroundSound}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select background sound" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {backgroundSounds.map((sound) => (
-                        <SelectItem key={sound.value} value={sound.value}>
-                          {sound.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Sound Volume */}
-                {backgroundSound !== 'none' && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Music className="w-4 h-4" />
-                        <span className="text-sm">Background Volume</span>
-                      </div>
-                      <span className="text-sm text-muted-foreground">{soundVolume[0]}%</span>
-                    </div>
-                    <Slider
-                      value={soundVolume}
-                      onValueChange={setSoundVolume}
-                      max={100}
-                      step={1}
-                    />
-                  </div>
-                )}
-
-                {/* Voice Volume */}
-                {isVoiceEnabled && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Voice Volume</span>
-                      <span className="text-sm text-muted-foreground">{volume[0]}%</span>
-                    </div>
-                    <Slider
-                      value={volume}
-                      onValueChange={setVolume}
-                      max={100}
-                      step={1}
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
             {/* Audio Player */}
             {selectedMeditation.audio_url && (
               <div className="space-y-4">
@@ -349,33 +258,16 @@ const MeditationApp = () => {
                   <Play className="w-6 h-6" />
                 )}
               </Button>
-              <div className="flex items-center space-x-2">
-                <Volume2 className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Master</span>
-              </div>
             </div>
 
-            {/* Current Settings Display */}
-            <div className="flex flex-wrap gap-2 justify-center">
-              {isVoiceEnabled && (
-                <Badge variant="outline">🎤 Voice guidance</Badge>
-              )}
-              {backgroundSound !== 'none' && (
-                <Badge variant="outline">🎵 {backgroundSounds.find(s => s.value === backgroundSound)?.label}</Badge>
-              )}
-            </div>
-
-            {/* Voice Script Preview */}
-            {isVoiceEnabled && selectedMeditation.voice_script && selectedMeditation.voice_script.length > 0 && (
+            {/* Meditation Script */}
+            {selectedMeditation.voice_script && selectedMeditation.voice_script.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Volume2 className="w-5 h-5" />
-                    Meditation Script Preview
-                  </CardTitle>
+                  <CardTitle className="text-lg">Meditation Guide</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
                     {selectedMeditation.voice_script.map((line, idx) => (
                       <p key={idx} className="text-sm text-muted-foreground italic">
                         "{line}"
