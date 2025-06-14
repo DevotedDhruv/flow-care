@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 interface PeriodEntry {
   id: string;
   date: string;
-  flow_intensity?: number;
+  flow_intensity: string;
   symptoms?: Record<string, any>;
 }
 
@@ -51,7 +50,7 @@ const CalendarComponent = ({ periodEntries = [], onDateClick, showPhases = true 
 
   const isPeriodDay = (day: number) => {
     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    return periodEntries.some(entry => entry.date === dateStr && entry.flow_intensity && entry.flow_intensity > 0);
+    return periodEntries.some(entry => entry.date === dateStr && entry.flow_intensity && entry.flow_intensity !== 'spotting');
   };
 
   const isFertileDay = (day: number) => {

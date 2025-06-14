@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Play, Clock, Target, Heart, Zap, Flower2, User, Volume2, Music, Mic } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,144 +7,32 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
+interface ExerciseContent {
+  id: string;
+  title: string;
+  description: string | null;
+  duration: number;
+  difficulty: string;
+  category: string;
+  benefits: string[] | null;
+  instructor: string | null;
+  video_url: string | null;
+  audio_url: string | null;
+  voice_instructions: string[] | null;
+}
 
 const ExerciseLibrary = () => {
-  const [selectedExercise, setSelectedExercise] = useState<any>(null);
+  const [exercises, setExercises] = useState<Record<string, ExerciseContent[]>>({});
+  const [selectedExercise, setSelectedExercise] = useState<ExerciseContent | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
   const [backgroundMusic, setBackgroundMusic] = useState('nature');
   const [musicVolume, setMusicVolume] = useState([50]);
   const [voiceVolume, setVoiceVolume] = useState([75]);
-
-  const exercises = {
-    menstrual: [
-      {
-        title: "Gentle Yoga Flow",
-        duration: "15 min",
-        difficulty: "Beginner",
-        description: "Restorative poses to ease cramps and reduce tension",
-        benefits: ["Reduces cramps", "Improves circulation", "Relieves stress"],
-        icon: Flower2,
-        videoId: "abc123",
-        voiceInstructions: [
-          "Welcome to gentle yoga flow. Let's start in child's pose.",
-          "Breathe deeply and feel your body relax.",
-          "Now move into cat-cow pose slowly.",
-          "Hold this position and breathe."
-        ]
-      },
-      {
-        title: "Light Walking",
-        duration: "20 min",
-        difficulty: "Beginner",
-        description: "Low-impact cardio to boost mood and energy",
-        benefits: ["Boosts endorphins", "Reduces bloating", "Improves mood"],
-        icon: User,
-        videoId: "def456",
-        voiceInstructions: [
-          "Let's begin with a gentle warm-up walk.",
-          "Keep your pace comfortable and steady.",
-          "Focus on your breathing as you walk.",
-          "Great job! You're doing wonderfully."
-        ]
-      }
-    ],
-    follicular: [
-      {
-        title: "HIIT Cardio",
-        duration: "25 min",
-        difficulty: "Intermediate",
-        description: "High-intensity interval training for energy boost",
-        benefits: ["Builds endurance", "Burns calories", "Increases energy"],
-        icon: Zap,
-        videoId: "ghi789",
-        voiceInstructions: [
-          "Time for high-intensity training! Let's start with jumping jacks.",
-          "Push yourself for 30 seconds, then rest for 10.",
-          "Great energy! Keep that intensity up.",
-          "Final round - give it everything you've got!"
-        ]
-      },
-      {
-        title: "Strength Training",
-        duration: "30 min",
-        difficulty: "Intermediate",
-        description: "Full-body workout with weights",
-        benefits: ["Builds muscle", "Improves bone density", "Boosts metabolism"],
-        icon: Target,
-        videoId: "jkl012",
-        voiceInstructions: [
-          "Welcome to strength training. Start with a proper warm-up.",
-          "Focus on your form - quality over quantity.",
-          "Feel those muscles working. You're getting stronger.",
-          "Excellent work! Cool down with gentle stretches."
-        ]
-      }
-    ],
-    ovulation: [
-      {
-        title: "Dance Cardio",
-        duration: "30 min",
-        difficulty: "Intermediate",
-        description: "Fun, energetic dance workout",
-        benefits: ["Improves coordination", "Burns calories", "Boosts mood"],
-        icon: Heart,
-        videoId: "mno345",
-        voiceInstructions: [
-          "Let's dance! Feel the rhythm and move your body.",
-          "Don't worry about perfect moves - just have fun!",
-          "You're glowing with energy! Keep dancing.",
-          "Amazing energy! Cool down with gentle swaying."
-        ]
-      },
-      {
-        title: "Power Yoga",
-        duration: "45 min",
-        difficulty: "Advanced",
-        description: "Dynamic yoga flow for peak energy phase",
-        benefits: ["Builds strength", "Improves flexibility", "Enhances focus"],
-        icon: Flower2,
-        videoId: "pqr678",
-        voiceInstructions: [
-          "Welcome to power yoga. Ground yourself in mountain pose.",
-          "Flow with your breath through this vinyasa sequence.",
-          "Hold this warrior pose and feel your strength.",
-          "End in savasana and embrace the calm."
-        ]
-      }
-    ],
-    luteal: [
-      {
-        title: "Pilates Core",
-        duration: "20 min",
-        difficulty: "Beginner",
-        description: "Gentle core strengthening and stretching",
-        benefits: ["Strengthens core", "Reduces PMS symptoms", "Improves posture"],
-        icon: Target,
-        videoId: "stu901",
-        voiceInstructions: [
-          "Let's focus on gentle core strengthening.",
-          "Engage your core muscles slowly and controlled.",
-          "Breathe steadily through each movement.",
-          "Perfect! Your core is getting stronger."
-        ]
-      },
-      {
-        title: "Restorative Yoga",
-        duration: "25 min",
-        difficulty: "Beginner",
-        description: "Calming poses to prepare for menstruation",
-        benefits: ["Reduces stress", "Improves sleep", "Balances hormones"],
-        icon: Flower2,
-        videoId: "vwx234",
-        voiceInstructions: [
-          "Time to restore and relax. Begin in a comfortable position.",
-          "Let go of any tension in your body.",
-          "Breathe deeply and feel yourself melting into relaxation.",
-          "Beautiful practice. Rest in this peaceful state."
-        ]
-      }
-    ]
-  };
+  const { toast } = useToast();
 
   const musicOptions = [
     { value: 'nature', label: 'Nature Sounds' },
@@ -152,6 +41,41 @@ const ExerciseLibrary = () => {
     { value: 'classical', label: 'Classical' },
     { value: 'none', label: 'No Music' }
   ];
+
+  useEffect(() => {
+    fetchExercises();
+  }, []);
+
+  const fetchExercises = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('exercise_content')
+        .select('*')
+        .order('category', { ascending: true });
+
+      if (error) throw error;
+
+      // Group exercises by category
+      const groupedExercises = data.reduce((acc: Record<string, ExerciseContent[]>, exercise) => {
+        if (!acc[exercise.category]) {
+          acc[exercise.category] = [];
+        }
+        acc[exercise.category].push(exercise);
+        return acc;
+      }, {});
+
+      setExercises(groupedExercises);
+    } catch (error) {
+      console.error('Error fetching exercises:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load exercise content",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -171,6 +95,34 @@ const ExerciseLibrary = () => {
       default: return '';
     }
   };
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    return `${mins} min`;
+  };
+
+  const getYouTubeEmbedUrl = (url: string) => {
+    const videoId = url.split('v=')[1]?.split('&')[0];
+    return `https://www.youtube.com/embed/${videoId}`;
+  };
+
+  const getPhaseIcon = (category: string) => {
+    switch (category) {
+      case 'menstrual': return Heart;
+      case 'follicular': return Zap;
+      case 'ovulation': return Target;
+      case 'luteal': return Flower2;
+      default: return User;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-pulse text-pink-600">Loading exercises...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -194,10 +146,10 @@ const ExerciseLibrary = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {phaseExercises.map((exercise, index) => {
-                    const Icon = exercise.icon;
+                  {phaseExercises.map((exercise) => {
+                    const Icon = getPhaseIcon(exercise.category);
                     return (
-                      <Card key={index} className="hover:shadow-lg transition-shadow cursor-pointer">
+                      <Card key={exercise.id} className="hover:shadow-lg transition-shadow cursor-pointer">
                         <CardHeader className="pb-3">
                           <div className="flex items-center justify-between">
                             <Icon className="w-6 h-6 text-pink-600" />
@@ -208,21 +160,26 @@ const ExerciseLibrary = () => {
                           <CardTitle className="text-lg">{exercise.title}</CardTitle>
                           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                             <Clock className="w-4 h-4" />
-                            <span>{exercise.duration}</span>
+                            <span>{formatDuration(exercise.duration)}</span>
                           </div>
+                          {exercise.instructor && (
+                            <p className="text-sm text-muted-foreground">by {exercise.instructor}</p>
+                          )}
                         </CardHeader>
                         <CardContent>
                           <p className="text-sm text-muted-foreground mb-3">{exercise.description}</p>
-                          <div className="space-y-2 mb-4">
-                            <h4 className="text-sm font-medium">Benefits:</h4>
-                            <div className="flex flex-wrap gap-1">
-                              {exercise.benefits.map((benefit, idx) => (
-                                <Badge key={idx} variant="secondary" className="text-xs">
-                                  {benefit}
-                                </Badge>
-                              ))}
+                          {exercise.benefits && exercise.benefits.length > 0 && (
+                            <div className="space-y-2 mb-4">
+                              <h4 className="text-sm font-medium">Benefits:</h4>
+                              <div className="flex flex-wrap gap-1">
+                                {exercise.benefits.map((benefit, idx) => (
+                                  <Badge key={idx} variant="secondary" className="text-xs">
+                                    {benefit}
+                                  </Badge>
+                                ))}
+                              </div>
                             </div>
-                          </div>
+                          )}
                           <Button 
                             className="w-full" 
                             onClick={() => setSelectedExercise(exercise)}
@@ -246,6 +203,9 @@ const ExerciseLibrary = () => {
         <Card className="mt-6">
           <CardHeader>
             <CardTitle>Now Playing: {selectedExercise.title}</CardTitle>
+            {selectedExercise.instructor && (
+              <p className="text-sm text-muted-foreground">by {selectedExercise.instructor}</p>
+            )}
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Audio Settings */}
@@ -323,23 +283,27 @@ const ExerciseLibrary = () => {
               </CardContent>
             </Card>
 
-            {/* Video Player Area */}
-            <div className="bg-gray-200 h-64 rounded-lg flex items-center justify-center mb-4">
-              <div className="text-center">
-                <Play className="w-12 h-12 mx-auto mb-2 text-gray-600" />
-                <p className="text-gray-600">Guided workout video would be here</p>
-                <p className="text-sm text-gray-500">Duration: {selectedExercise.duration}</p>
-                {isVoiceEnabled && (
-                  <p className="text-sm text-green-600 mt-2">🎤 Voice guidance enabled</p>
-                )}
-                {backgroundMusic !== 'none' && (
-                  <p className="text-sm text-blue-600">🎵 {musicOptions.find(m => m.value === backgroundMusic)?.label}</p>
-                )}
+            {/* Video Player */}
+            {selectedExercise.video_url && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Exercise Video</h3>
+                <div className="aspect-video w-full">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={getYouTubeEmbedUrl(selectedExercise.video_url)}
+                    title={selectedExercise.title}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="rounded-lg"
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Voice Instructions Preview */}
-            {isVoiceEnabled && selectedExercise.voiceInstructions && (
+            {isVoiceEnabled && selectedExercise.voice_instructions && selectedExercise.voice_instructions.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
@@ -348,8 +312,8 @@ const ExerciseLibrary = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
-                    {selectedExercise.voiceInstructions.map((instruction: string, idx: number) => (
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {selectedExercise.voice_instructions.map((instruction, idx) => (
                       <div key={idx} className="flex items-start space-x-2 text-sm">
                         <Badge variant="outline" className="text-xs">{idx + 1}</Badge>
                         <span className="text-muted-foreground">{instruction}</span>
@@ -359,6 +323,16 @@ const ExerciseLibrary = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* Current Settings Display */}
+            <div className="flex flex-wrap gap-2 justify-center">
+              {isVoiceEnabled && (
+                <Badge variant="outline">🎤 Voice guidance</Badge>
+              )}
+              {backgroundMusic !== 'none' && (
+                <Badge variant="outline">🎵 {musicOptions.find(m => m.value === backgroundMusic)?.label}</Badge>
+              )}
+            </div>
 
             <Button 
               variant="outline" 

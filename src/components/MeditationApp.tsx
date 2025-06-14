@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Play, Pause, RotateCcw, Volume2, Moon, Sun, Heart, Zap, Music, Mic } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,15 +7,33 @@ import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
+interface MeditationContent {
+  id: string;
+  title: string;
+  description: string | null;
+  duration: number;
+  category: string;
+  benefits: string[] | null;
+  instructor: string | null;
+  audio_url: string | null;
+  voice_script: string[] | null;
+  background_sounds: string[] | null;
+}
 
 const MeditationApp = () => {
+  const [meditations, setMeditations] = useState<Record<string, MeditationContent[]>>({});
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [selectedMeditation, setSelectedMeditation] = useState<any>(null);
+  const [selectedMeditation, setSelectedMeditation] = useState<MeditationContent | null>(null);
   const [volume, setVolume] = useState([75]);
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
   const [backgroundSound, setBackgroundSound] = useState('rain');
   const [soundVolume, setSoundVolume] = useState([30]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   const backgroundSounds = [
     { value: 'rain', label: 'Rain' },
@@ -26,144 +45,39 @@ const MeditationApp = () => {
     { value: 'none', label: 'Silence' }
   ];
 
-  const meditations = {
-    cramps: [
-      {
-        title: "Period Pain Relief",
-        duration: 600, // 10 minutes in seconds
-        description: "Guided meditation to help ease menstrual cramps through breathing and visualization",
-        instructor: "Dr. Sarah Jones",
-        benefits: ["Reduces pain perception", "Promotes relaxation", "Improves circulation"],
-        icon: Heart,
-        audioFile: "period-pain-relief.mp3",
-        voiceScript: [
-          "Welcome to this healing meditation for period pain relief.",
-          "Find a comfortable position and close your eyes.",
-          "Take a deep breath in through your nose...",
-          "And slowly exhale through your mouth, releasing any tension.",
-          "Imagine warm, healing light flowing to your lower abdomen.",
-          "With each breath, feel the pain gently melting away."
-        ]
-      },
-      {
-        title: "Body Scan for Comfort",
-        duration: 900, // 15 minutes
-        description: "Progressive body scan to release tension and find comfort during your period",
-        instructor: "Maya Chen",
-        benefits: ["Releases muscle tension", "Increases body awareness", "Promotes healing"],
-        icon: Moon,
-        audioFile: "body-scan-comfort.mp3",
-        voiceScript: [
-          "Let's begin this gentle body scan meditation.",
-          "Start by noticing your feet, allowing them to relax completely.",
-          "Move your attention to your legs, releasing any tightness.",
-          "Feel your hips and pelvis softening with each breath.",
-          "Continue this journey of relaxation through your entire body."
-        ]
-      }
-    ],
-    pms: [
-      {
-        title: "Emotional Balance",
-        duration: 720, // 12 minutes
-        description: "Mindfulness practice to navigate PMS emotions with grace and self-compassion",
-        instructor: "Dr. Amanda Lee",
-        benefits: ["Balances emotions", "Reduces irritability", "Increases self-awareness"],
-        icon: Sun,
-        audioFile: "emotional-balance.mp3",
-        voiceScript: [
-          "This meditation will help you find emotional balance and peace.",
-          "Acknowledge any difficult emotions without judgment.",
-          "You are not your emotions - you are the observer of them.",
-          "Breathe compassion into your heart.",
-          "Feel yourself returning to a state of calm equilibrium."
-        ]
-      },
-      {
-        title: "Stress Release",
-        duration: 480, // 8 minutes
-        description: "Quick stress-busting meditation for overwhelming PMS days",
-        instructor: "Jennifer Smith",
-        benefits: ["Reduces stress hormones", "Calms nervous system", "Improves mood"],
-        icon: Zap,
-        audioFile: "stress-release.mp3",
-        voiceScript: [
-          "Let's quickly release stress and tension from your body and mind.",
-          "Take three deep, cleansing breaths.",
-          "Imagine stress leaving your body with each exhale.",
-          "Feel lightness and peace filling the space where stress once was.",
-          "You are calm, centered, and in control."
-        ]
-      }
-    ],
-    sleep: [
-      {
-        title: "Cycle Sleep Support",
-        duration: 1200, // 20 minutes
-        description: "Gentle meditation to improve sleep quality during hormonal changes",
-        instructor: "Dr. Rachel Green",
-        benefits: ["Improves sleep quality", "Regulates circadian rhythm", "Balances hormones"],
-        icon: Moon,
-        audioFile: "cycle-sleep-support.mp3",
-        voiceScript: [
-          "This meditation will guide you into peaceful, restorative sleep.",
-          "Let your body sink deeply into your bed.",
-          "Release the day's worries with each gentle breath.",
-          "Feel yourself drifting into a state of deep relaxation.",
-          "Allow sleep to come naturally and peacefully."
-        ]
-      },
-      {
-        title: "Deep Rest Restoration",
-        duration: 1800, // 30 minutes
-        description: "Extended meditation for deep rest and hormonal balance",
-        instructor: "Lisa Park",
-        benefits: ["Promotes deep rest", "Supports hormone regulation", "Enhances recovery"],
-        icon: Moon,
-        audioFile: "deep-rest.mp3",
-        voiceScript: [
-          "Welcome to this extended meditation for deep restoration.",
-          "This is your time to completely let go and restore.",
-          "Feel your nervous system calming with each moment.",
-          "Your body knows how to heal and balance itself.",
-          "Rest in this state of perfect peace and restoration."
-        ]
-      }
-    ],
-    energy: [
-      {
-        title: "Morning Energy Boost",
-        duration: 300, // 5 minutes
-        description: "Energizing meditation to start your day with vitality",
-        instructor: "Alex Rivera",
-        benefits: ["Increases energy", "Improves focus", "Boosts motivation"],
-        icon: Sun,
-        audioFile: "morning-energy.mp3",
-        voiceScript: [
-          "Good morning! Let's awaken your inner energy and vitality.",
-          "Feel the life force energy flowing through every cell.",
-          "Imagine bright, golden light filling your entire being.",
-          "You are energized, focused, and ready for the day ahead.",
-          "Carry this vibrant energy with you."
-        ]
-      },
-      {
-        title: "Cycle Empowerment",
-        duration: 600, // 10 minutes
-        description: "Meditation to embrace your cycle and feel empowered in your body",
-        instructor: "Dr. Maria Santos",
-        benefits: ["Builds self-confidence", "Embraces femininity", "Increases body positivity"],
-        icon: Heart,
-        audioFile: "cycle-empowerment.mp3",
-        voiceScript: [
-          "This meditation celebrates the power and wisdom of your feminine cycle.",
-          "Your body is wise and knows exactly what it needs.",
-          "Feel gratitude for this amazing vessel that carries you.",
-          "You are powerful, beautiful, and perfectly designed.",
-          "Embrace your cycle as a source of strength and wisdom."
-        ]
-      }
-    ]
+  useEffect(() => {
+    fetchMeditations();
+  }, []);
+
+  const fetchMeditations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('meditation_content')
+        .select('*')
+        .order('category', { ascending: true });
+
+      if (error) throw error;
+
+      // Group meditations by category
+      const groupedMeditations = data.reduce((acc: Record<string, MeditationContent[]>, meditation) => {
+        if (!acc[meditation.category]) {
+          acc[meditation.category] = [];
+        }
+        acc[meditation.category].push(meditation);
+        return acc;
+      }, {});
+
+      setMeditations(groupedMeditations);
+    } catch (error) {
+      console.error('Error fetching meditations:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load meditation content",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -205,6 +119,29 @@ const MeditationApp = () => {
     }
   };
 
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'cramps': return Heart;
+      case 'pms': return Sun;
+      case 'sleep': return Moon;
+      case 'energy': return Zap;
+      default: return Heart;
+    }
+  };
+
+  const getYouTubeEmbedUrl = (url: string) => {
+    const videoId = url.split('v=')[1]?.split('&')[0];
+    return `https://www.youtube.com/embed/${videoId}`;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-pulse text-pink-600">Loading meditations...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="cramps" className="w-full">
@@ -224,13 +161,13 @@ const MeditationApp = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {categoryMeditations.map((meditation, index) => {
-                    const Icon = meditation.icon;
+                  {categoryMeditations.map((meditation) => {
+                    const Icon = getCategoryIcon(meditation.category);
                     return (
                       <Card 
-                        key={index} 
+                        key={meditation.id} 
                         className={`hover:shadow-lg transition-shadow cursor-pointer ${
-                          selectedMeditation?.title === meditation.title ? 'ring-2 ring-pink-300' : ''
+                          selectedMeditation?.id === meditation.id ? 'ring-2 ring-pink-300' : ''
                         }`}
                         onClick={() => {
                           setSelectedMeditation(meditation);
@@ -246,20 +183,24 @@ const MeditationApp = () => {
                             </Badge>
                           </div>
                           <CardTitle className="text-lg">{meditation.title}</CardTitle>
-                          <p className="text-sm text-muted-foreground">by {meditation.instructor}</p>
+                          {meditation.instructor && (
+                            <p className="text-sm text-muted-foreground">by {meditation.instructor}</p>
+                          )}
                         </CardHeader>
                         <CardContent>
                           <p className="text-sm text-muted-foreground mb-3">{meditation.description}</p>
-                          <div className="space-y-2">
-                            <h4 className="text-sm font-medium">Benefits:</h4>
-                            <div className="flex flex-wrap gap-1">
-                              {meditation.benefits.map((benefit, idx) => (
-                                <Badge key={idx} variant="secondary" className="text-xs">
-                                  {benefit}
-                                </Badge>
-                              ))}
+                          {meditation.benefits && meditation.benefits.length > 0 && (
+                            <div className="space-y-2">
+                              <h4 className="text-sm font-medium">Benefits:</h4>
+                              <div className="flex flex-wrap gap-1">
+                                {meditation.benefits.map((benefit, idx) => (
+                                  <Badge key={idx} variant="secondary" className="text-xs">
+                                    {benefit}
+                                  </Badge>
+                                ))}
+                              </div>
                             </div>
-                          </div>
+                          )}
                         </CardContent>
                       </Card>
                     );
@@ -279,7 +220,9 @@ const MeditationApp = () => {
               <span>Now Playing: {selectedMeditation.title}</span>
               <Badge>{formatTime(selectedMeditation.duration)}</Badge>
             </CardTitle>
-            <p className="text-sm text-muted-foreground">by {selectedMeditation.instructor}</p>
+            {selectedMeditation.instructor && (
+              <p className="text-sm text-muted-foreground">by {selectedMeditation.instructor}</p>
+            )}
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Audio Settings */}
@@ -357,6 +300,25 @@ const MeditationApp = () => {
               </CardContent>
             </Card>
 
+            {/* Audio Player */}
+            {selectedMeditation.audio_url && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Guided Meditation</h3>
+                <div className="aspect-video w-full">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={getYouTubeEmbedUrl(selectedMeditation.audio_url)}
+                    title={selectedMeditation.title}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="rounded-lg"
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Progress Bar */}
             <div className="space-y-2">
               <div className="flex justify-between text-sm text-muted-foreground">
@@ -404,7 +366,7 @@ const MeditationApp = () => {
             </div>
 
             {/* Voice Script Preview */}
-            {isVoiceEnabled && selectedMeditation.voiceScript && (
+            {isVoiceEnabled && selectedMeditation.voice_script && selectedMeditation.voice_script.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
@@ -414,7 +376,7 @@ const MeditationApp = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {selectedMeditation.voiceScript.map((line: string, idx: number) => (
+                    {selectedMeditation.voice_script.map((line, idx) => (
                       <p key={idx} className="text-sm text-muted-foreground italic">
                         "{line}"
                       </p>
@@ -427,13 +389,15 @@ const MeditationApp = () => {
             {/* Session Info */}
             <div className="text-center space-y-2">
               <p className="text-sm text-muted-foreground">{selectedMeditation.description}</p>
-              <div className="flex justify-center space-x-2">
-                {selectedMeditation.benefits.map((benefit, idx) => (
-                  <Badge key={idx} variant="outline" className="text-xs">
-                    {benefit}
-                  </Badge>
-                ))}
-              </div>
+              {selectedMeditation.benefits && selectedMeditation.benefits.length > 0 && (
+                <div className="flex justify-center space-x-2">
+                  {selectedMeditation.benefits.map((benefit, idx) => (
+                    <Badge key={idx} variant="outline" className="text-xs">
+                      {benefit}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

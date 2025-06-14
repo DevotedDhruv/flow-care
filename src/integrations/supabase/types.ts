@@ -9,6 +9,99 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      exercise_content: {
+        Row: {
+          audio_url: string | null
+          benefits: string[] | null
+          category: string
+          created_at: string
+          description: string | null
+          difficulty: string
+          duration: number
+          id: string
+          instructor: string | null
+          title: string
+          updated_at: string
+          video_url: string | null
+          voice_instructions: string[] | null
+        }
+        Insert: {
+          audio_url?: string | null
+          benefits?: string[] | null
+          category: string
+          created_at?: string
+          description?: string | null
+          difficulty: string
+          duration: number
+          id?: string
+          instructor?: string | null
+          title: string
+          updated_at?: string
+          video_url?: string | null
+          voice_instructions?: string[] | null
+        }
+        Update: {
+          audio_url?: string | null
+          benefits?: string[] | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          difficulty?: string
+          duration?: number
+          id?: string
+          instructor?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+          voice_instructions?: string[] | null
+        }
+        Relationships: []
+      }
+      meditation_content: {
+        Row: {
+          audio_url: string | null
+          background_sounds: string[] | null
+          benefits: string[] | null
+          category: string
+          created_at: string
+          description: string | null
+          duration: number
+          id: string
+          instructor: string | null
+          title: string
+          updated_at: string
+          voice_script: string[] | null
+        }
+        Insert: {
+          audio_url?: string | null
+          background_sounds?: string[] | null
+          benefits?: string[] | null
+          category: string
+          created_at?: string
+          description?: string | null
+          duration: number
+          id?: string
+          instructor?: string | null
+          title: string
+          updated_at?: string
+          voice_script?: string[] | null
+        }
+        Update: {
+          audio_url?: string | null
+          background_sounds?: string[] | null
+          benefits?: string[] | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          duration?: number
+          id?: string
+          instructor?: string | null
+          title?: string
+          updated_at?: string
+          voice_script?: string[] | null
+        }
+        Relationships: []
+      }
       menstrual_cycles: {
         Row: {
           created_at: string
