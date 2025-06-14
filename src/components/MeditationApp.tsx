@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Play, Pause, RotateCcw, Moon, Sun, Heart, Zap } from 'lucide-react';
+import { Play, Moon, Sun, Heart, Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,8 +23,6 @@ interface MeditationContent {
 
 const MeditationApp = () => {
   const [meditations, setMeditations] = useState<Record<string, MeditationContent[]>>({});
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
   const [selectedMeditation, setSelectedMeditation] = useState<MeditationContent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -70,29 +68,6 @@ const MeditationApp = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handlePlayPause = () => {
-    setIsPlaying(!isPlaying);
-  };
-
-  const handleReset = () => {
-    setCurrentTime(0);
-    setIsPlaying(false);
-  };
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (isPlaying && selectedMeditation && currentTime < selectedMeditation.duration) {
-      interval = setInterval(() => {
-        setCurrentTime(prev => prev + 1);
-      }, 1000);
-    } else if (currentTime >= (selectedMeditation?.duration || 0)) {
-      setIsPlaying(false);
-    }
-
-    return () => clearInterval(interval);
-  }, [isPlaying, currentTime, selectedMeditation]);
-
   const getTabDescription = (tab: string) => {
     switch (tab) {
       case 'cramps': return 'Meditations specifically designed to help with period pain and discomfort';
@@ -115,7 +90,7 @@ const MeditationApp = () => {
 
   const getYouTubeEmbedUrl = (url: string) => {
     const videoId = url.split('v=')[1]?.split('&')[0];
-    return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+    return `https://www.youtube.com/embed/${videoId}?rel=0`;
   };
 
   if (isLoading) {
@@ -153,11 +128,7 @@ const MeditationApp = () => {
                         className={`hover:shadow-lg transition-shadow cursor-pointer ${
                           selectedMeditation?.id === meditation.id ? 'ring-2 ring-pink-300' : ''
                         }`}
-                        onClick={() => {
-                          setSelectedMeditation(meditation);
-                          setCurrentTime(0);
-                          setIsPlaying(false);
-                        }}
+                        onClick={() => setSelectedMeditation(meditation)}
                       >
                         <CardHeader className="pb-3">
                           <div className="flex items-center justify-between">
@@ -196,7 +167,7 @@ const MeditationApp = () => {
         ))}
       </Tabs>
 
-      {/* Simplified Meditation Player */}
+      {/* Audio/Video Player */}
       {selectedMeditation && (
         <Card>
           <CardHeader>
@@ -209,10 +180,8 @@ const MeditationApp = () => {
             )}
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Audio Player */}
             {selectedMeditation.audio_url && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Guided Meditation</h3>
                 <div className="aspect-video w-full">
                   <iframe
                     width="100%"
@@ -228,39 +197,6 @@ const MeditationApp = () => {
               </div>
             )}
 
-            {/* Progress Bar */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>{formatTime(currentTime)}</span>
-                <span>{formatTime(selectedMeditation.duration)}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-pink-600 h-2 rounded-full transition-all duration-1000"
-                  style={{ width: `${(currentTime / selectedMeditation.duration) * 100}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Controls */}
-            <div className="flex items-center justify-center space-x-4">
-              <Button variant="outline" size="sm" onClick={handleReset}>
-                <RotateCcw className="w-4 h-4" />
-              </Button>
-              <Button 
-                size="lg" 
-                onClick={handlePlayPause}
-                className="rounded-full w-16 h-16"
-              >
-                {isPlaying ? (
-                  <Pause className="w-6 h-6" />
-                ) : (
-                  <Play className="w-6 h-6" />
-                )}
-              </Button>
-            </div>
-
-            {/* Meditation Script */}
             {selectedMeditation.voice_script && selectedMeditation.voice_script.length > 0 && (
               <Card>
                 <CardHeader>
@@ -278,7 +214,6 @@ const MeditationApp = () => {
               </Card>
             )}
 
-            {/* Session Info */}
             <div className="text-center space-y-2">
               <p className="text-sm text-muted-foreground">{selectedMeditation.description}</p>
               {selectedMeditation.benefits && selectedMeditation.benefits.length > 0 && (
@@ -291,6 +226,14 @@ const MeditationApp = () => {
                 </div>
               )}
             </div>
+
+            <Button 
+              variant="outline" 
+              onClick={() => setSelectedMeditation(null)}
+              className="w-full"
+            >
+              Close
+            </Button>
           </CardContent>
         </Card>
       )}

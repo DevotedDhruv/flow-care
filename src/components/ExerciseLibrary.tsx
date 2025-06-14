@@ -89,7 +89,7 @@ const ExerciseLibrary = () => {
 
   const getYouTubeEmbedUrl = (url: string) => {
     const videoId = url.split('v=')[1]?.split('&')[0];
-    return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+    return `https://www.youtube.com/embed/${videoId}?rel=0`;
   };
 
   const getPhaseIcon = (category: string) => {
@@ -184,7 +184,7 @@ const ExerciseLibrary = () => {
         ))}
       </Tabs>
 
-      {/* Simplified Workout Player */}
+      {/* Video Player */}
       {selectedExercise && (
         <Card className="mt-6">
           <CardHeader>
@@ -194,10 +194,8 @@ const ExerciseLibrary = () => {
             )}
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Video Player */}
             {selectedExercise.video_url && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Exercise Video</h3>
                 <div className="aspect-video w-full">
                   <iframe
                     width="100%"
@@ -213,7 +211,6 @@ const ExerciseLibrary = () => {
               </div>
             )}
 
-            {/* Exercise Instructions */}
             {selectedExercise.voice_instructions && selectedExercise.voice_instructions.length > 0 && (
               <Card>
                 <CardHeader>
