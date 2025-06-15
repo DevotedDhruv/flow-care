@@ -1,5 +1,6 @@
+
 import { useState } from 'react';
-import { User, Lock, Trash2, Save, Database } from 'lucide-react';
+import { User, Lock, Trash2, Save, Database, LogOut } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,10 +10,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 const Settings = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [fullName, setFullName] = useState(user?.user_metadata?.full_name || '');
   const [currentPassword, setCurrentPassword] = useState('');
@@ -98,7 +101,6 @@ const Settings = () => {
     setIsLoading(true);
 
     try {
-      // Delete all user data but keep the account
       await supabase.from('period_entries').delete().eq('user_id', user?.id);
       await supabase.from('menstrual_cycles').delete().eq('user_id', user?.id);
 
@@ -106,6 +108,9 @@ const Settings = () => {
         title: "Data Deleted",
         description: "All your tracking data has been permanently deleted",
       });
+
+      // Trigger a page reload to refresh all components
+      window.location.reload();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -121,7 +126,6 @@ const Settings = () => {
     setIsLoading(true);
 
     try {
-      // First delete user data
       await supabase.from('period_entries').delete().eq('user_id', user?.id);
       await supabase.from('menstrual_cycles').delete().eq('user_id', user?.id);
       await supabase.from('profiles').delete().eq('id', user?.id);
@@ -131,7 +135,6 @@ const Settings = () => {
         description: "Your account and all data have been permanently deleted",
       });
 
-      // Sign out the user
       await supabase.auth.signOut();
     } catch (error: any) {
       toast({
@@ -144,12 +147,26 @@ const Settings = () => {
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/landing');
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="security">Security & Data</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="account">Account</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="space-y-6">
@@ -244,6 +261,26 @@ const Settings = () => {
                   {isLoading ? 'Updating...' : 'Update Password'}
                 </Button>
               </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="account" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <LogOut className="w-5 h-5 mr-2 text-blue-600" />
+                Sign Out
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Sign out of your account. You can sign back in anytime.
+              </p>
+              <Button onClick={handleSignOut} variant="outline" className="w-full">
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
             </CardContent>
           </Card>
 

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/hooks/useAuth';
+import { useCycleData } from '@/hooks/useCycleData';
 import PeriodTracker from '@/components/PeriodTracker';
 import HealthInsights from '@/components/HealthInsights';
 import SymptomsChart from '@/components/SymptomsChart';
@@ -13,12 +14,12 @@ import Settings from '@/components/Settings';
 import Community from '@/components/Community';
 import Navigation from '@/components/Navigation';
 import CalendarComponent from '@/components/NepaliCalendar';
+import EmptyDashboard from '@/components/EmptyDashboard';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [cycleDay, setCycleDay] = useState(12);
-  const [nextPeriod, setNextPeriod] = useState(16);
   const { user, loading, signOut } = useAuth();
+  const cycleData = useCycleData();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,11 +36,16 @@ const Index = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard 
-          cycleDay={cycleDay}
-          nextPeriod={nextPeriod}
-          onTabChange={setActiveTab}
-        />;
+        return cycleData.hasData ? (
+          <Dashboard 
+            cycleData={cycleData}
+            onTabChange={setActiveTab}
+          />
+        ) : (
+          <EmptyDashboard 
+            onStartTracking={() => setActiveTab('period')}
+          />
+        );
       case 'period':
         return <PeriodTracker />;
       case 'insights':
@@ -51,15 +57,20 @@ const Index = () => {
       case 'settings':
         return <Settings />;
       default:
-        return <Dashboard 
-          cycleDay={cycleDay}
-          nextPeriod={nextPeriod}
-          onTabChange={setActiveTab}
-        />;
+        return cycleData.hasData ? (
+          <Dashboard 
+            cycleData={cycleData}
+            onTabChange={setActiveTab}
+          />
+        ) : (
+          <EmptyDashboard 
+            onStartTracking={() => setActiveTab('period')}
+          />
+        );
     }
   };
 
-  if (loading) {
+  if (loading || cycleData.isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-teal-50 flex items-center justify-center">
         <div className="text-center">
@@ -71,7 +82,7 @@ const Index = () => {
   }
 
   if (!user) {
-    return null; // Will redirect to landing
+    return null;
   }
 
   return (
@@ -113,12 +124,11 @@ const Index = () => {
   );
 };
 
-const Dashboard = ({ cycleDay, nextPeriod, onTabChange }: {
-  cycleDay: number;
-  nextPeriod: number;
+const Dashboard = ({ cycleData, onTabChange }: {
+  cycleData: any;
   onTabChange: (tab: string) => void;
 }) => {
-  const progressPercentage = (cycleDay / 28) * 100;
+  const progressPercentage = cycleData.cycleDay ? (cycleData.cycleDay / cycleData.avgCycleLength) * 100 : 0;
 
   return (
     <div className="space-y-6">
@@ -145,18 +155,26 @@ const Dashboard = ({ cycleDay, nextPeriod, onTabChange }: {
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">Day {cycleDay} of cycle</span>
-                  <span className="text-sm text-muted-foreground">{progressPercentage.toFixed(0)}%</span>
+                  <span className="text-sm font-medium">
+                    Day {cycleData.cycleDay || 0} of cycle
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {progressPercentage.toFixed(0)}%
+                  </span>
                 </div>
                 <Progress value={progressPercentage} className="h-2" />
               </div>
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
-                  <p className="text-2xl font-bold text-pink-600">{nextPeriod}</p>
+                  <p className="text-2xl font-bold text-pink-600">
+                    {cycleData.nextPeriod || 0}
+                  </p>
                   <p className="text-xs text-muted-foreground">Days until period</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-purple-600">28</p>
+                  <p className="text-2xl font-bold text-purple-600">
+                    {cycleData.avgCycleLength}
+                  </p>
                   <p className="text-xs text-muted-foreground">Avg cycle length</p>
                 </div>
               </div>
@@ -199,14 +217,16 @@ const Dashboard = ({ cycleDay, nextPeriod, onTabChange }: {
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center">
               <Calendar className="w-5 h-5 mr-2 text-purple-600" />
-              This Month
+              Period Length
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-purple-600">5</p>
-                <p className="text-sm text-muted-foreground">Days logged</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {cycleData.avgPeriodLength}
+                </p>
+                <p className="text-sm text-muted-foreground">Average days</p>
               </div>
               <div className="text-center">
                 <Badge variant="secondary" className="bg-purple-200 text-purple-800">
@@ -273,15 +293,21 @@ const Dashboard = ({ cycleDay, nextPeriod, onTabChange }: {
               <div className="space-y-4">
                 <div className="p-4 bg-pink-50 rounded-lg border border-pink-200">
                   <h4 className="font-medium text-pink-800">Cycle Pattern</h4>
-                  <p className="text-sm text-pink-600 mt-1">Your cycles have been consistently 28 days for the past 3 months.</p>
+                  <p className="text-sm text-pink-600 mt-1">
+                    Your average cycle length is {cycleData.avgCycleLength} days. Keep tracking for more insights!
+                  </p>
                 </div>
                 <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
                   <h4 className="font-medium text-purple-800">Flow Tracking</h4>
-                  <p className="text-sm text-purple-600 mt-1">You've been consistently tracking your flow intensity. Great job!</p>
+                  <p className="text-sm text-purple-600 mt-1">
+                    Your average period lasts {cycleData.avgPeriodLength} days. Great job on consistent tracking!
+                  </p>
                 </div>
                 <div className="p-4 bg-teal-50 rounded-lg border border-teal-200">
                   <h4 className="font-medium text-teal-800">Health Tip</h4>
-                  <p className="text-sm text-teal-600 mt-1">Consider increasing iron-rich foods during your period to combat fatigue.</p>
+                  <p className="text-sm text-teal-600 mt-1">
+                    Consider increasing iron-rich foods during your period to combat fatigue.
+                  </p>
                 </div>
               </div>
             </CardContent>
