@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { BookOpen, TrendingUp, AlertCircle, Heart, Info, ExternalLink, Play, Dumbbell, Brain } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -84,103 +83,158 @@ const HealthInsights = () => {
   const getPersonalizedVideos = () => {
     const analysis = analyzeUserData();
     
-    // Base video library with working YouTube videos
-    let personalizedVideos = [
-      {
-        title: "5-Minute Morning Yoga for Energy",
-        channel: "Yoga with Adriene",
-        duration: "5:12",
-        category: "yoga",
-        description: "Start your day with gentle energy-boosting yoga",
-        videoId: "VaoV1P82Xio",
-        thumbnail: "/placeholder.svg"
-      },
-      {
-        title: "10-Minute Meditation for Period Pain",
-        channel: "The Honest Guys",
-        duration: "10:33",
-        category: "meditation",
-        description: "Guided meditation to help with menstrual cramps",
-        videoId: "ZToicYcHIOU",
-        thumbnail: "/placeholder.svg"
-      },
-      {
-        title: "Gentle Stretches for PMS Relief",
-        channel: "PsycheTruth",
-        duration: "8:45",
-        category: "exercise",
-        description: "Gentle exercises to relieve PMS symptoms",
-        videoId: "h6tJcr6pL4M",
-        thumbnail: "/placeholder.svg"
-      },
-      {
-        title: "Breathing Exercises for Stress Relief",
-        channel: "Headspace",
-        duration: "6:20",
-        category: "meditation",
-        description: "Simple breathing techniques for stress management",
-        videoId: "YRPh_GaiL8s",
-        thumbnail: "/placeholder.svg"
-      },
-      {
-        title: "Low Impact Cardio for All Cycle Phases",
-        channel: "FitnessBlender",
-        duration: "15:30",
-        category: "exercise",
-        description: "Gentle cardio suitable for any time of the month",
-        videoId: "gC_L9qAHVJ8",
-        thumbnail: "/placeholder.svg"
-      },
-      {
-        title: "Yoga for Better Sleep",
-        channel: "Yoga with Adriene",
-        duration: "12:15",
-        category: "yoga",
-        description: "Relaxing yoga sequence to improve sleep quality",
-        videoId: "BiWDsfZ3jdI",
-        thumbnail: "/placeholder.svg"
-      }
-    ];
+    // Comprehensive video library with working YouTube videos organized by category
+    const videoLibrary = {
+      yoga: [
+        {
+          title: "Gentle Morning Yoga Flow",
+          channel: "Yoga with Adriene",
+          duration: "10:15",
+          description: "Start your day with gentle energy-boosting yoga",
+          videoId: "VaoV1P82Xio"
+        },
+        {
+          title: "Yoga for Menstrual Cramps",
+          channel: "Yoga with Adriene",
+          duration: "18:22",
+          description: "Gentle yoga poses to relieve menstrual pain",
+          videoId: "C-zAXIzOzRU"
+        },
+        {
+          title: "Restorative Yoga for Relaxation",
+          channel: "Boho Beautiful",
+          duration: "25:10",
+          description: "Calming yoga for deep relaxation and stress relief",
+          videoId: "GLy2rYHwUqY"
+        },
+        {
+          title: "Yoga for Better Sleep",
+          channel: "Yoga with Adriene",
+          duration: "20:45",
+          description: "Relaxing bedtime yoga sequence",
+          videoId: "BiWDsfZ3jdI"
+        },
+        {
+          title: "Hormone Balance Yoga",
+          channel: "Yoga with Adriene",
+          duration: "30:12",
+          description: "Yoga sequence to support hormonal balance",
+          videoId: "RT37QsKZOLw"
+        }
+      ],
+      exercise: [
+        {
+          title: "Low Impact Cardio Workout",
+          channel: "FitnessBlender",
+          duration: "15:30",
+          description: "Gentle cardio suitable for any time of the month",
+          videoId: "gC_L9qAHVJ8"
+        },
+        {
+          title: "Pilates Core Strengthening",
+          channel: "Move with Nicole",
+          duration: "12:45",
+          description: "Core strengthening exercises for better posture",
+          videoId: "7L0VoEHy6-M"
+        },
+        {
+          title: "Walking Workout at Home",
+          channel: "Walk at Home",
+          duration: "20:00",
+          description: "Indoor walking workout for when you can't go outside",
+          videoId: "gBmNukz_4Hw"
+        },
+        {
+          title: "Strength Training for Beginners",
+          channel: "Calisthenic Movement",
+          duration: "16:25",
+          description: "Bodyweight exercises for building strength",
+          videoId: "ml6cT4AZdqI"
+        },
+        {
+          title: "Full Body Stretch Routine",
+          channel: "MadFit",
+          duration: "14:18",
+          description: "Complete stretching routine for flexibility",
+          videoId: "g_tea8ZNk5A"
+        }
+      ],
+      meditation: [
+        {
+          title: "Guided Meditation for Period Pain",
+          channel: "The Honest Guys",
+          duration: "10:33",
+          description: "Meditation to help with menstrual cramps",
+          videoId: "ZToicYcHIOU"
+        },
+        {
+          title: "Stress Relief Meditation",
+          channel: "Headspace",
+          duration: "6:20",
+          description: "Quick meditation for stress management",
+          videoId: "YRPh_GaiL8s"
+        },
+        {
+          title: "Sleep Meditation",
+          channel: "Jason Stephenson",
+          duration: "12:15",
+          description: "Guided meditation for better sleep",
+          videoId: "jkjmNEVHa6w"
+        },
+        {
+          title: "Morning Energy Meditation",
+          channel: "Michael Sealey",
+          duration: "8:45",
+          description: "Energizing meditation to start your day",
+          videoId: "inpok4MKVLM"
+        },
+        {
+          title: "Emotional Balance Meditation",
+          channel: "The Mindful Movement",
+          duration: "15:30",
+          description: "Meditation for emotional stability during cycle changes",
+          videoId: "LhYtcadR9nw"
+        }
+      ]
+    };
 
-    // Add personalized content based on user data
+    let personalizedVideos: any[] = [];
+
+    // Add videos based on user's specific needs
     if (analysis?.isIrregular) {
-      personalizedVideos.unshift({
-        title: "Yoga for Hormone Balance",
-        channel: "Yoga with Adriene",
-        duration: "20:45",
-        category: "yoga",
-        description: "Yoga sequence designed to support hormonal balance",
-        videoId: "RT37QsKZOLw",
-        thumbnail: "/placeholder.svg"
-      });
+      personalizedVideos.push(...videoLibrary.yoga.filter(v => 
+        v.title.includes('Hormone') || v.title.includes('Balance')
+      ));
     }
 
     if (analysis?.commonSymptoms.includes('cramps')) {
-      personalizedVideos.unshift({
-        title: "Yoga for Menstrual Cramps",
-        channel: "Yoga with Adriene",
-        duration: "18:22",
-        category: "yoga",
-        description: "Gentle yoga poses to relieve menstrual pain",
-        videoId: "C-zAXIzOzRU",
-        thumbnail: "/placeholder.svg"
-      });
+      personalizedVideos.push(...videoLibrary.yoga.filter(v => 
+        v.title.includes('Cramps') || v.title.includes('Pain')
+      ));
+      personalizedVideos.push(...videoLibrary.meditation.filter(v => 
+        v.title.includes('Pain') || v.title.includes('Relief')
+      ));
     }
 
-    // Recommend based on cycle phase
-    if (cycleData.cycleDay && cycleData.cycleDay > 14) {
-      personalizedVideos.push({
-        title: "Restorative Yoga for Luteal Phase",
-        channel: "Boho Beautiful",
-        duration: "25:10",
-        category: "yoga",
-        description: "Calming yoga for the second half of your cycle",
-        videoId: "GLy2rYHwUqY",
-        thumbnail: "/placeholder.svg"
-      });
-    }
+    // Add variety from each category
+    personalizedVideos.push(...videoLibrary.yoga.slice(0, 3));
+    personalizedVideos.push(...videoLibrary.exercise.slice(0, 3));
+    personalizedVideos.push(...videoLibrary.meditation.slice(0, 3));
 
-    return personalizedVideos;
+    // Remove duplicates and add category info
+    const uniqueVideos = personalizedVideos.filter((video, index, self) => 
+      index === self.findIndex(v => v.videoId === video.videoId)
+    );
+
+    // Add category info to each video
+    return uniqueVideos.map(video => {
+      let category = 'wellness';
+      if (videoLibrary.yoga.some(v => v.videoId === video.videoId)) category = 'yoga';
+      if (videoLibrary.exercise.some(v => v.videoId === video.videoId)) category = 'exercise';
+      if (videoLibrary.meditation.some(v => v.videoId === video.videoId)) category = 'meditation';
+      
+      return { ...video, category };
+    });
   };
 
   const getPersonalizedContent = () => {
@@ -191,7 +245,6 @@ const HealthInsights = () => {
     
     let personalizedArticles = [...educationalContent];
 
-    // Filter content based on user's specific needs
     if (isIrregular) {
       personalizedArticles.unshift({
         category: 'Cycle Health',
@@ -384,35 +437,47 @@ Understanding these phases can help you better predict your periods, identify yo
   return (
     <div className="space-y-6">
       <Tabs defaultValue="insights" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="insights">Health Insights</TabsTrigger>
-          <TabsTrigger value="videos">Videos</TabsTrigger>
-          <TabsTrigger value="education">Education</TabsTrigger>
-          <TabsTrigger value="exercise">Exercise</TabsTrigger>
-          <TabsTrigger value="meditation">Meditation</TabsTrigger>
-          <TabsTrigger value="tips">Daily Tips</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 gap-1">
+          <TabsTrigger value="insights" className="text-xs lg:text-sm px-1 lg:px-3">
+            Insights
+          </TabsTrigger>
+          <TabsTrigger value="videos" className="text-xs lg:text-sm px-1 lg:px-3">
+            Videos
+          </TabsTrigger>
+          <TabsTrigger value="education" className="text-xs lg:text-sm px-1 lg:px-3">
+            Education
+          </TabsTrigger>
+          <TabsTrigger value="exercise" className="text-xs lg:text-sm px-1 lg:px-3">
+            Exercise
+          </TabsTrigger>
+          <TabsTrigger value="meditation" className="text-xs lg:text-sm px-1 lg:px-3">
+            Meditation
+          </TabsTrigger>
+          <TabsTrigger value="tips" className="text-xs lg:text-sm px-1 lg:px-3">
+            Tips
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="insights" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <TrendingUp className="w-5 h-5 mr-2 text-pink-600" />
+                <CardTitle className="flex items-center text-base lg:text-lg">
+                  <TrendingUp className="w-4 h-4 lg:w-5 lg:h-5 mr-2 text-pink-600" />
                   Personalized Insights
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {insights.map((insight, index) => (
-                  <div key={index} className="p-4 border rounded-lg space-y-2">
+                  <div key={index} className="p-3 lg:p-4 border rounded-lg space-y-2">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-medium">{insight.title}</h4>
-                      <Badge className={getStatusColor(insight.status)}>
+                      <h4 className="font-medium text-sm lg:text-base">{insight.title}</h4>
+                      <Badge className={`${getStatusColor(insight.status)} text-xs`}>
                         {insight.status === 'good' ? 'Good' : insight.status === 'normal' ? 'Normal' : 'Needs Attention'}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">{insight.description}</p>
-                    <p className="text-sm text-blue-600 bg-blue-50 p-2 rounded">
+                    <p className="text-xs lg:text-sm text-muted-foreground">{insight.description}</p>
+                    <p className="text-xs lg:text-sm text-blue-600 bg-blue-50 p-2 rounded">
                       💡 {insight.recommendation}
                     </p>
                   </div>
@@ -422,55 +487,55 @@ Understanding these phases can help you better predict your periods, identify yo
 
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <AlertCircle className="w-5 h-5 mr-2 text-purple-600" />
+                <CardTitle className="flex items-center text-base lg:text-lg">
+                  <AlertCircle className="w-4 h-4 lg:w-5 lg:h-5 mr-2 text-purple-600" />
                   Health Score Breakdown
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-center mb-4">
-                  <p className="text-3xl font-bold text-purple-600">8.5</p>
-                  <p className="text-sm text-muted-foreground">Overall Health Score</p>
+                  <p className="text-2xl lg:text-3xl font-bold text-purple-600">8.5</p>
+                  <p className="text-xs lg:text-sm text-muted-foreground">Overall Health Score</p>
                 </div>
                 
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">Cycle Regularity</span>
+                    <span className="text-xs lg:text-sm">Cycle Regularity</span>
                     <div className="flex items-center space-x-2">
-                      <div className="w-20 h-2 bg-gray-200 rounded-full">
+                      <div className="w-16 lg:w-20 h-2 bg-gray-200 rounded-full">
                         <div className="w-4/5 h-2 bg-green-500 rounded-full"></div>
                       </div>
-                      <span className="text-sm font-medium">9.2</span>
+                      <span className="text-xs lg:text-sm font-medium">9.2</span>
                     </div>
                   </div>
                   
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">Symptom Management</span>
+                    <span className="text-xs lg:text-sm">Symptom Management</span>
                     <div className="flex items-center space-x-2">
-                      <div className="w-20 h-2 bg-gray-200 rounded-full">
+                      <div className="w-16 lg:w-20 h-2 bg-gray-200 rounded-full">
                         <div className="w-3/5 h-2 bg-yellow-500 rounded-full"></div>
                       </div>
-                      <span className="text-sm font-medium">7.5</span>
+                      <span className="text-xs lg:text-sm font-medium">7.5</span>
                     </div>
                   </div>
                   
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">Data Consistency</span>
+                    <span className="text-xs lg:text-sm">Data Consistency</span>
                     <div className="flex items-center space-x-2">
-                      <div className="w-20 h-2 bg-gray-200 rounded-full">
+                      <div className="w-16 lg:w-20 h-2 bg-gray-200 rounded-full">
                         <div className="w-4/5 h-2 bg-green-500 rounded-full"></div>
                       </div>
-                      <span className="text-sm font-medium">8.8</span>
+                      <span className="text-xs lg:text-sm font-medium">8.8</span>
                     </div>
                   </div>
                   
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">Wellness Habits</span>
+                    <span className="text-xs lg:text-sm">Wellness Habits</span>
                     <div className="flex items-center space-x-2">
-                      <div className="w-20 h-2 bg-gray-200 rounded-full">
+                      <div className="w-16 lg:w-20 h-2 bg-gray-200 rounded-full">
                         <div className="w-4/5 h-2 bg-blue-500 rounded-full"></div>
                       </div>
-                      <span className="text-sm font-medium">8.0</span>
+                      <span className="text-xs lg:text-sm font-medium">8.0</span>
                     </div>
                   </div>
                 </div>
@@ -482,11 +547,11 @@ Understanding these phases can help you better predict your periods, identify yo
         <TabsContent value="videos" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Play className="w-5 h-5 mr-2 text-pink-600" />
+              <CardTitle className="flex items-center text-base lg:text-lg">
+                <Play className="w-4 h-4 lg:w-5 lg:h-5 mr-2 text-pink-600" />
                 Personalized Video Library
               </CardTitle>
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="text-xs lg:text-sm text-muted-foreground mt-2">
                 Videos recommended based on your cycle data and symptoms
               </p>
             </CardHeader>
@@ -496,20 +561,20 @@ Understanding these phases can help you better predict your periods, identify yo
                   <Card key={index} className="hover:shadow-lg transition-shadow cursor-pointer">
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
-                        <Badge variant="outline">{video.category}</Badge>
+                        <Badge variant="outline" className="text-xs">{video.category}</Badge>
                         <span className="text-xs text-muted-foreground">{video.duration}</span>
                       </div>
-                      <CardTitle className="text-lg">{video.title}</CardTitle>
-                      <p className="text-sm text-muted-foreground">by {video.channel}</p>
+                      <CardTitle className="text-sm lg:text-lg">{video.title}</CardTitle>
+                      <p className="text-xs lg:text-sm text-muted-foreground">by {video.channel}</p>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-muted-foreground mb-3">{video.description}</p>
+                      <p className="text-xs lg:text-sm text-muted-foreground mb-3">{video.description}</p>
                       <Button 
                         variant="outline" 
-                        className="w-full"
+                        className="w-full text-xs lg:text-sm"
                         onClick={() => openYouTubeVideo(video.videoId)}
                       >
-                        <Play className="w-4 h-4 mr-2" />
+                        <Play className="w-3 h-3 lg:w-4 lg:h-4 mr-2" />
                         Watch Video
                       </Button>
                     </CardContent>
@@ -526,36 +591,36 @@ Understanding these phases can help you better predict your periods, identify yo
               <Card key={index} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <Badge variant="outline">{content.category}</Badge>
+                    <Badge variant="outline" className="text-xs">{content.category}</Badge>
                     <span className="text-xs text-muted-foreground">{content.readTime}</span>
                   </div>
-                  <CardTitle className="text-lg">{content.title}</CardTitle>
+                  <CardTitle className="text-sm lg:text-lg">{content.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                  <p className="text-xs lg:text-sm text-muted-foreground mb-4 line-clamp-3">
                     {content.content.substring(0, 150)}...
                   </p>
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" className="w-full">
-                        <BookOpen className="w-4 h-4 mr-2" />
+                      <Button variant="outline" className="w-full text-xs lg:text-sm">
+                        <BookOpen className="w-3 h-3 lg:w-4 lg:h-4 mr-2" />
                         Read Full Article
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
-                        <DialogTitle className="text-xl">{content.title}</DialogTitle>
-                        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                        <DialogTitle className="text-lg lg:text-xl">{content.title}</DialogTitle>
+                        <div className="flex items-center space-x-4 text-xs lg:text-sm text-muted-foreground">
                           <Badge variant="outline">{content.category}</Badge>
                           <span>{content.readTime}</span>
                         </div>
                       </DialogHeader>
                       <div className="prose prose-sm max-w-none">
-                        <div className="whitespace-pre-line text-sm leading-relaxed">
+                        <div className="whitespace-pre-line text-xs lg:text-sm leading-relaxed">
                           {content.content}
                         </div>
                         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                          <h4 className="font-medium mb-2">Sources:</h4>
+                          <h4 className="font-medium mb-2 text-sm lg:text-base">Sources:</h4>
                           <ul className="text-xs text-muted-foreground space-y-1">
                             {content.sources.map((source, idx) => (
                               <li key={idx}>• {source}</li>
@@ -574,11 +639,11 @@ Understanding these phases can help you better predict your periods, identify yo
         <TabsContent value="exercise" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Dumbbell className="w-5 h-5 mr-2 text-pink-600" />
+              <CardTitle className="flex items-center text-base lg:text-lg">
+                <Dumbbell className="w-4 h-4 lg:w-5 lg:h-5 mr-2 text-pink-600" />
                 Cycle-Synced Exercise Library
               </CardTitle>
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="text-xs lg:text-sm text-muted-foreground mt-2">
                 Workouts tailored to your menstrual cycle phases for optimal results and comfort
               </p>
             </CardHeader>
@@ -591,11 +656,11 @@ Understanding these phases can help you better predict your periods, identify yo
         <TabsContent value="meditation" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Brain className="w-5 h-5 mr-2 text-purple-600" />
+              <CardTitle className="flex items-center text-base lg:text-lg">
+                <Brain className="w-4 h-4 lg:w-5 lg:h-5 mr-2 text-purple-600" />
                 Guided Meditation & Mindfulness
               </CardTitle>
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="text-xs lg:text-sm text-muted-foreground mt-2">
                 Meditation sessions designed to support your menstrual health and emotional well-being
               </p>
             </CardHeader>
@@ -608,8 +673,8 @@ Understanding these phases can help you better predict your periods, identify yo
         <TabsContent value="tips" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Info className="w-5 h-5 mr-2 text-teal-600" />
+              <CardTitle className="flex items-center text-base lg:text-lg">
+                <Info className="w-4 h-4 lg:w-5 lg:h-5 mr-2 text-teal-600" />
                 Daily Wellness Tips
               </CardTitle>
             </CardHeader>
@@ -618,10 +683,10 @@ Understanding these phases can help you better predict your periods, identify yo
                 {tips.map((tip, index) => {
                   const Icon = tip.icon;
                   return (
-                    <div key={index} className="text-center p-6 bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg">
-                      <Icon className="w-12 h-12 mx-auto mb-4 text-teal-600" />
-                      <h4 className="font-medium mb-2">{tip.title}</h4>
-                      <p className="text-sm text-muted-foreground">{tip.description}</p>
+                    <div key={index} className="text-center p-4 lg:p-6 bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg">
+                      <Icon className="w-8 h-8 lg:w-12 lg:h-12 mx-auto mb-4 text-teal-600" />
+                      <h4 className="font-medium mb-2 text-sm lg:text-base">{tip.title}</h4>
+                      <p className="text-xs lg:text-sm text-muted-foreground">{tip.description}</p>
                     </div>
                   );
                 })}
