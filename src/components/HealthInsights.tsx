@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { BookOpen, TrendingUp, AlertCircle, Heart, Info, ExternalLink, Play, Dumbbell, Brain } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useCycleData } from '@/hooks/useCycleData';
 import ExerciseLibrary from './ExerciseLibrary';
 import MeditationApp from './MeditationApp';
 
@@ -16,6 +18,7 @@ const HealthInsights = () => {
   const [userSymptoms, setUserSymptoms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const cycleData = useCycleData();
 
   useEffect(() => {
     if (user) {
@@ -78,6 +81,108 @@ const HealthInsights = () => {
     };
   };
 
+  const getPersonalizedVideos = () => {
+    const analysis = analyzeUserData();
+    
+    // Base video library with working YouTube videos
+    let personalizedVideos = [
+      {
+        title: "5-Minute Morning Yoga for Energy",
+        channel: "Yoga with Adriene",
+        duration: "5:12",
+        category: "yoga",
+        description: "Start your day with gentle energy-boosting yoga",
+        videoId: "VaoV1P82Xio",
+        thumbnail: "/placeholder.svg"
+      },
+      {
+        title: "10-Minute Meditation for Period Pain",
+        channel: "The Honest Guys",
+        duration: "10:33",
+        category: "meditation",
+        description: "Guided meditation to help with menstrual cramps",
+        videoId: "ZToicYcHIOU",
+        thumbnail: "/placeholder.svg"
+      },
+      {
+        title: "Gentle Stretches for PMS Relief",
+        channel: "PsycheTruth",
+        duration: "8:45",
+        category: "exercise",
+        description: "Gentle exercises to relieve PMS symptoms",
+        videoId: "h6tJcr6pL4M",
+        thumbnail: "/placeholder.svg"
+      },
+      {
+        title: "Breathing Exercises for Stress Relief",
+        channel: "Headspace",
+        duration: "6:20",
+        category: "meditation",
+        description: "Simple breathing techniques for stress management",
+        videoId: "YRPh_GaiL8s",
+        thumbnail: "/placeholder.svg"
+      },
+      {
+        title: "Low Impact Cardio for All Cycle Phases",
+        channel: "FitnessBlender",
+        duration: "15:30",
+        category: "exercise",
+        description: "Gentle cardio suitable for any time of the month",
+        videoId: "gC_L9qAHVJ8",
+        thumbnail: "/placeholder.svg"
+      },
+      {
+        title: "Yoga for Better Sleep",
+        channel: "Yoga with Adriene",
+        duration: "12:15",
+        category: "yoga",
+        description: "Relaxing yoga sequence to improve sleep quality",
+        videoId: "BiWDsfZ3jdI",
+        thumbnail: "/placeholder.svg"
+      }
+    ];
+
+    // Add personalized content based on user data
+    if (analysis?.isIrregular) {
+      personalizedVideos.unshift({
+        title: "Yoga for Hormone Balance",
+        channel: "Yoga with Adriene",
+        duration: "20:45",
+        category: "yoga",
+        description: "Yoga sequence designed to support hormonal balance",
+        videoId: "RT37QsKZOLw",
+        thumbnail: "/placeholder.svg"
+      });
+    }
+
+    if (analysis?.commonSymptoms.includes('cramps')) {
+      personalizedVideos.unshift({
+        title: "Yoga for Menstrual Cramps",
+        channel: "Yoga with Adriene",
+        duration: "18:22",
+        category: "yoga",
+        description: "Gentle yoga poses to relieve menstrual pain",
+        videoId: "C-zAXIzOzRU",
+        thumbnail: "/placeholder.svg"
+      });
+    }
+
+    // Recommend based on cycle phase
+    if (cycleData.cycleDay && cycleData.cycleDay > 14) {
+      personalizedVideos.push({
+        title: "Restorative Yoga for Luteal Phase",
+        channel: "Boho Beautiful",
+        duration: "25:10",
+        category: "yoga",
+        description: "Calming yoga for the second half of your cycle",
+        videoId: "GLy2rYHwUqY",
+        thumbnail: "/placeholder.svg"
+      });
+    }
+
+    return personalizedVideos;
+  };
+
   const getPersonalizedContent = () => {
     const analysis = analyzeUserData();
     if (!analysis) return { articles: [], videos: [] };
@@ -85,7 +190,6 @@ const HealthInsights = () => {
     const { isIrregular, commonSymptoms, avgCycleLength } = analysis;
     
     let personalizedArticles = [...educationalContent];
-    let personalizedVideos = [...youtubeVideos];
 
     // Filter content based on user's specific needs
     if (isIrregular) {
@@ -123,15 +227,6 @@ Continue tracking your cycles to identify patterns and triggers. This informatio
           'Mayo Clinic',
           'Cleveland Clinic'
         ]
-      });
-
-      personalizedVideos.unshift({
-        title: "Understanding Irregular Periods",
-        channel: "Mayo Clinic",
-        duration: "5:23",
-        thumbnail: "/placeholder.svg",
-        url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        videoId: "dQw4w9WgXcQ"
       });
     }
 
@@ -176,20 +271,9 @@ If cramps are severe enough to interfere with daily activities, last longer than
       });
     }
 
-    if (avgCycleLength > 35) {
-      personalizedVideos.push({
-        title: "Long Menstrual Cycles Explained",
-        channel: "Women's Health Network",
-        duration: "7:45",
-        thumbnail: "/placeholder.svg",
-        url: "https://www.youtube.com/watch?v=oHg5SJYRHA0",
-        videoId: "oHg5SJYRHA0"
-      });
-    }
-
     return {
       articles: personalizedArticles.slice(0, 6),
-      videos: personalizedVideos.slice(0, 6)
+      videos: getPersonalizedVideos()
     };
   };
 
@@ -249,17 +333,6 @@ Understanding these phases can help you better predict your periods, identify yo
     }
   ];
 
-  const youtubeVideos = [
-    {
-      title: "Understanding Your Menstrual Cycle",
-      channel: "Planned Parenthood",
-      duration: "4:32",
-      thumbnail: "/placeholder.svg",
-      url: "https://www.youtube.com/watch?v=W_o-I9fXrTk",
-      videoId: "W_o-I9fXrTk"
-    }
-  ];
-
   const tips = [
     {
       icon: Heart,
@@ -311,8 +384,9 @@ Understanding these phases can help you better predict your periods, identify yo
   return (
     <div className="space-y-6">
       <Tabs defaultValue="insights" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="insights">Health Insights</TabsTrigger>
+          <TabsTrigger value="videos">Videos</TabsTrigger>
           <TabsTrigger value="education">Education</TabsTrigger>
           <TabsTrigger value="exercise">Exercise</TabsTrigger>
           <TabsTrigger value="meditation">Meditation</TabsTrigger>
@@ -405,9 +479,50 @@ Understanding these phases can help you better predict your periods, identify yo
           </div>
         </TabsContent>
 
+        <TabsContent value="videos" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Play className="w-5 h-5 mr-2 text-pink-600" />
+                Personalized Video Library
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-2">
+                Videos recommended based on your cycle data and symptoms
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {personalizedContent.videos.map((video, index) => (
+                  <Card key={index} className="hover:shadow-lg transition-shadow cursor-pointer">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline">{video.category}</Badge>
+                        <span className="text-xs text-muted-foreground">{video.duration}</span>
+                      </div>
+                      <CardTitle className="text-lg">{video.title}</CardTitle>
+                      <p className="text-sm text-muted-foreground">by {video.channel}</p>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground mb-3">{video.description}</p>
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => openYouTubeVideo(video.videoId)}
+                      >
+                        <Play className="w-4 h-4 mr-2" />
+                        Watch Video
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="education" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            {educationalContent.map((content, index) => (
+            {personalizedContent.articles.map((content, index) => (
               <Card key={index} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-center justify-between">

@@ -268,7 +268,7 @@ const Dashboard = ({ cycleData, onTabChange }: {
                 <Button 
                   variant="outline" 
                   className="h-20 flex flex-col"
-                  onClick={() => onTabChange('symptoms')}
+                  onClick={() => onTabChange('insights')}
                 >
                   <TrendingUp className="w-6 h-6 mb-2" />
                   Track Symptoms
