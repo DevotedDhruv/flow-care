@@ -15,6 +15,7 @@ import Community from '@/components/Community';
 import Navigation from '@/components/Navigation';
 import CalendarComponent from '@/components/NepaliCalendar';
 import EmptyDashboard from '@/components/EmptyDashboard';
+import AIChatbot from '@/components/AIChatbot';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -50,10 +51,10 @@ const Index = () => {
         return <PeriodTracker />;
       case 'insights':
         return <HealthInsights />;
-      case 'symptoms':
-        return <SymptomsChart data={[]} />;
       case 'community':
         return <Community />;
+      case 'chatbot':
+        return <AIChatbot />;
       case 'settings':
         return <Settings />;
       default:
