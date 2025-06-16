@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Brain, Activity, TrendingUp, BookOpen } from 'lucide-react';
+import { Heart, Brain, Activity, TrendingUp, BookOpen, Play } from 'lucide-react';
 import EducationalContent from './EducationalContent';
 
 const HealthInsights = () => {
@@ -63,6 +63,136 @@ const HealthInsights = () => {
     { name: 'Fatigue', severity: 'Low', frequency: '1 day', trend: 'decreasing' },
   ];
 
+  const phaseVideos = {
+    menstrual: {
+      exercise: [
+        {
+          title: "Gentle Yoga for Period Relief",
+          videoId: "87p2hrmJ2aI",
+          duration: "15 min",
+          description: "Soothing yoga poses to ease menstrual cramps"
+        },
+        {
+          title: "Restorative Stretches for Menstruation",
+          videoId: "tAvIHMWU9AE",
+          duration: "20 min",
+          description: "Gentle stretching routine for period comfort"
+        }
+      ],
+      meditation: [
+        {
+          title: "Period Pain Relief Meditation",
+          videoId: "aEqlQvczMJQ",
+          duration: "10 min",
+          description: "Guided meditation for managing menstrual discomfort"
+        },
+        {
+          title: "Self-Care Meditation for Periods",
+          videoId: "inpok4MKVLM",
+          duration: "12 min",
+          description: "Loving-kindness meditation for self-compassion"
+        }
+      ]
+    },
+    follicular: {
+      exercise: [
+        {
+          title: "Energizing Morning Workout",
+          videoId: "ML4bBuBSyBo",
+          duration: "25 min",
+          description: "High-energy workout to match your rising energy levels"
+        },
+        {
+          title: "Cardio Dance for Follicular Phase",
+          videoId: "gC_L9qAHVJ8",
+          duration: "30 min",
+          description: "Fun dance cardio to boost mood and energy"
+        }
+      ],
+      meditation: [
+        {
+          title: "Motivation & Goal Setting Meditation",
+          videoId: "ZToicYcHIOU",
+          duration: "15 min",
+          description: "Meditation to harness your creative energy"
+        },
+        {
+          title: "Confidence Building Meditation",
+          videoId: "686s-5zexAE",
+          duration: "12 min",
+          description: "Build confidence as your energy rises"
+        }
+      ]
+    },
+    ovulatory: {
+      exercise: [
+        {
+          title: "High Intensity Interval Training",
+          videoId: "ml6cT4AZdqI",
+          duration: "20 min",
+          description: "Maximize your peak energy with HIIT"
+        },
+        {
+          title: "Strength Training for Women",
+          videoId: "UBMk30rjy0o",
+          duration: "35 min",
+          description: "Build strength during your most powerful phase"
+        }
+      ],
+      meditation: [
+        {
+          title: "Manifestation Meditation",
+          videoId: "FjHGZj2IjBk",
+          duration: "18 min",
+          description: "Channel your peak energy into manifestation"
+        },
+        {
+          title: "Chakra Balancing Meditation",
+          videoId: "cH-iSUC_9h0",
+          duration: "22 min",
+          description: "Balance your energy centers at peak vitality"
+        }
+      ]
+    },
+    luteal: {
+      exercise: [
+        {
+          title: "PMS Relief Yoga",
+          videoId: "R1J06eVhRzA",
+          duration: "25 min",
+          description: "Yoga to ease PMS symptoms and mood swings"
+        },
+        {
+          title: "Low Impact Pilates",
+          videoId: "lI9TqUdNnhE",
+          duration: "30 min",
+          description: "Gentle pilates for the luteal phase"
+        }
+      ],
+      meditation: [
+        {
+          title: "Emotional Balance Meditation",
+          videoId: "inpok4MKVLM",
+          duration: "16 min",
+          description: "Find emotional stability during hormonal changes"
+        },
+        {
+          title: "Stress Relief Meditation",
+          videoId: "hDDWYTGR_sg",
+          duration: "14 min",
+          description: "Release tension and prepare for your next cycle"
+        }
+      ]
+    }
+  };
+
+  const getCurrentPhase = () => {
+    // This would normally be based on user's actual cycle data
+    return 'menstrual'; // Default for demo
+  };
+
+  const currentPhase = getCurrentPhase();
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -75,10 +205,14 @@ const HealthInsights = () => {
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="insights" className="flex items-center space-x-2">
             <TrendingUp className="w-4 h-4" />
             <span>Health Insights</span>
+          </TabsTrigger>
+          <TabsTrigger value="videos" className="flex items-center space-x-2">
+            <Play className="w-4 h-4" />
+            <span>Exercise & Meditation</span>
           </TabsTrigger>
           <TabsTrigger value="education" className="flex items-center space-x-2">
             <BookOpen className="w-4 h-4" />
@@ -206,6 +340,169 @@ const HealthInsights = () => {
                   </p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="videos" className="space-y-6">
+          <div className="text-center mb-6">
+            <h3 className="text-xl font-semibold mb-2">Exercise & Meditation for Your Current Phase</h3>
+            <Badge variant="outline" className="text-sm">
+              Currently in: {currentPhase.charAt(0).toUpperCase() + currentPhase.slice(1)} Phase
+            </Badge>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Exercise Videos */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Activity className="w-5 h-5 mr-2 text-purple-600" />
+                  Exercise Videos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {phaseVideos[currentPhase]?.exercise.map((video, index) => (
+                    <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="aspect-video mb-3">
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          src={`https://www.youtube.com/embed/${video.videoId}`}
+                          title={video.title}
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          className="rounded-md"
+                        />
+                      </div>
+                      <h4 className="font-medium mb-1">{video.title}</h4>
+                      <p className="text-sm text-muted-foreground mb-2">{video.description}</p>
+                      <Badge variant="secondary" className="text-xs">
+                        {video.duration}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Meditation Videos */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Brain className="w-5 h-5 mr-2 text-teal-600" />
+                  Meditation Videos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {phaseVideos[currentPhase]?.meditation.map((video, index) => (
+                    <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="aspect-video mb-3">
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          src={`https://www.youtube.com/embed/${video.videoId}`}
+                          title={video.title}
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          className="rounded-md"
+                        />
+                      </div>
+                      <h4 className="font-medium mb-1">{video.title}</h4>
+                      <p className="text-sm text-muted-foreground mb-2">{video.description}</p>
+                      <Badge variant="secondary" className="text-xs">
+                        {video.duration}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* All Phases Videos */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Videos for All Menstrual Phases</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="menstrual" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="menstrual">Menstrual</TabsTrigger>
+                  <TabsTrigger value="follicular">Follicular</TabsTrigger>
+                  <TabsTrigger value="ovulatory">Ovulatory</TabsTrigger>
+                  <TabsTrigger value="luteal">Luteal</TabsTrigger>
+                </TabsList>
+                
+                {Object.entries(phaseVideos).map(([phase, videos]) => (
+                  <TabsContent key={phase} value={phase} className="mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-medium mb-4 flex items-center">
+                          <Activity className="w-4 h-4 mr-2" />
+                          Exercise
+                        </h4>
+                        <div className="space-y-4">
+                          {videos.exercise.map((video, index) => (
+                            <div key={index} className="border rounded-lg p-3">
+                              <div className="aspect-video mb-2">
+                                <iframe
+                                  width="100%"
+                                  height="100%"
+                                  src={`https://www.youtube.com/embed/${video.videoId}`}
+                                  title={video.title}
+                                  frameBorder="0"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                  className="rounded-md"
+                                />
+                              </div>
+                              <h5 className="font-medium text-sm mb-1">{video.title}</h5>
+                              <p className="text-xs text-muted-foreground mb-2">{video.description}</p>
+                              <Badge variant="secondary" className="text-xs">
+                                {video.duration}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="font-medium mb-4 flex items-center">
+                          <Brain className="w-4 h-4 mr-2" />
+                          Meditation
+                        </h4>
+                        <div className="space-y-4">
+                          {videos.meditation.map((video, index) => (
+                            <div key={index} className="border rounded-lg p-3">
+                              <div className="aspect-video mb-2">
+                                <iframe
+                                  width="100%"
+                                  height="100%"
+                                  src={`https://www.youtube.com/embed/${video.videoId}`}
+                                  title={video.title}
+                                  frameBorder="0"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                  className="rounded-md"
+                                />
+                              </div>
+                              <h5 className="font-medium text-sm mb-1">{video.title}</h5>
+                              <p className="text-xs text-muted-foreground mb-2">{video.description}</p>
+                              <Badge variant="secondary" className="text-xs">
+                                {video.duration}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </TabsContent>
+                ))}
+              </Tabs>
             </CardContent>
           </Card>
         </TabsContent>

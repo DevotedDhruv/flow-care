@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Heart, TrendingUp, Users, Shield, Smartphone, Star, ArrowRight, Play, Target } from 'lucide-react';
+import { Calendar, Heart, TrendingUp, Users, Shield, Smartphone, Star, ArrowRight, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -96,10 +96,6 @@ const LandingPage = () => {
             <Button size="lg" onClick={() => navigate('/auth')} className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600">
               Start Tracking for Free
               <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button size="lg" variant="outline">
-              <Play className="w-5 h-5 mr-2" />
-              Watch Demo
             </Button>
           </div>
         </div>

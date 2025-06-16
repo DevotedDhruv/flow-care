@@ -1,5 +1,6 @@
+
 import { useState } from 'react';
-import { MessageSquare, Users, Plus, Heart, MessageCircle, ThumbsUp, ThumbsDown, Send, Hash } from 'lucide-react';
+import { MessageSquare, Users, Plus, Heart, MessageCircle, ThumbsUp, ThumbsDown, Send, Hash, Edit, Trash2, MoreHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -39,11 +41,18 @@ const Community = () => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
+  const [isEditPostOpen, setIsEditPostOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
   
   // New post form state
   const [newPostTitle, setNewPostTitle] = useState('');
   const [newPostContent, setNewPostContent] = useState('');
   const [newPostTags, setNewPostTags] = useState('');
+  
+  // Edit post form state
+  const [editPostTitle, setEditPostTitle] = useState('');
+  const [editPostContent, setEditPostContent] = useState('');
+  const [editPostTags, setEditPostTags] = useState('');
   
   // Reply form state
   const [replyContent, setReplyContent] = useState('');
@@ -81,6 +90,45 @@ const Community = () => {
     setNewPostContent('');
     setNewPostTags('');
     setIsCreatePostOpen(false);
+  };
+
+  const handleEditPost = () => {
+    if (!editingPost || !editPostTitle.trim() || !editPostContent.trim()) return;
+
+    setPosts(posts.map(post => 
+      post.id === editingPost.id 
+        ? {
+            ...post,
+            title: editPostTitle,
+            content: editPostContent,
+            tags: editPostTags.split(',').map(tag => tag.trim()).filter(tag => tag)
+          }
+        : post
+    ));
+
+    setEditingPost(null);
+    setEditPostTitle('');
+    setEditPostContent('');
+    setEditPostTags('');
+    setIsEditPostOpen(false);
+  };
+
+  const handleDeletePost = (postId: string) => {
+    setPosts(posts.filter(post => post.id !== postId));
+    setReplies(replies.filter(reply => reply.postId !== postId));
+  };
+
+  const openEditDialog = (post: Post) => {
+    setEditingPost(post);
+    setEditPostTitle(post.title);
+    setEditPostContent(post.content);
+    setEditPostTags(post.tags.join(', '));
+    setIsEditPostOpen(true);
+  };
+
+  const canEditOrDelete = (postAuthor: string) => {
+    const currentUserName = user?.user_metadata?.full_name || user?.email || 'Anonymous';
+    return postAuthor === currentUserName;
   };
 
   const handleVotePost = (postId: string, voteType: 'like' | 'dislike') => {
@@ -252,6 +300,53 @@ const Community = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Post Dialog */}
+        <Dialog open={isEditPostOpen} onOpenChange={setIsEditPostOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Edit Post</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="edit-title">Title</Label>
+                <Input
+                  id="edit-title"
+                  value={editPostTitle}
+                  onChange={(e) => setEditPostTitle(e.target.value)}
+                  placeholder="What's your question or topic?"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-content">Content</Label>
+                <Textarea
+                  id="edit-content"
+                  value={editPostContent}
+                  onChange={(e) => setEditPostContent(e.target.value)}
+                  placeholder="Share your thoughts, questions, or experiences..."
+                  rows={5}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-tags">Tags (comma-separated)</Label>
+                <Input
+                  id="edit-tags"
+                  value={editPostTags}
+                  onChange={(e) => setEditPostTags(e.target.value)}
+                  placeholder="e.g., cramps, irregular-cycles, natural-remedies"
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setIsEditPostOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleEditPost}>
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full">
@@ -269,7 +364,31 @@ const Community = () => {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-lg mb-2">{post.title}</CardTitle>
+                    <div className="flex items-center justify-between mb-2">
+                      <CardTitle className="text-lg">{post.title}</CardTitle>
+                      {canEditOrDelete(post.author) && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openEditDialog(post)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleDeletePost(post.id)}
+                              className="text-red-600 focus:text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground mb-3">{post.content}</p>
                     <div className="flex flex-wrap gap-1 mb-2">
                       {post.tags.map((tag) => (
