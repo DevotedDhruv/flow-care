@@ -56,21 +56,21 @@ const LandingPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-teal-50">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
       {/* Header */}
       <header className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Calendar className="w-8 h-8 text-pink-600" />
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+            <Calendar className="w-8 h-8 text-pink-600 dark:text-pink-400" />
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 dark:from-pink-400 dark:to-purple-400 bg-clip-text text-transparent">
               FlowCare
             </h1>
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" onClick={() => navigate('/auth')}>
+            <Button variant="ghost" onClick={() => navigate('/auth')} className="dark:text-gray-300 dark:hover:text-white">
               Sign In
             </Button>
-            <Button onClick={() => navigate('/auth')} className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600">
+            <Button onClick={() => navigate('/auth')} className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 dark:from-pink-600 dark:to-purple-600 dark:hover:from-pink-700 dark:hover:to-purple-700">
               Get Started
             </Button>
           </div>
@@ -80,20 +80,20 @@ const LandingPage = () => {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="max-w-4xl mx-auto">
-          <Badge variant="outline" className="mb-4 text-pink-600 border-pink-200">
+          <Badge variant="outline" className="mb-4 text-pink-600 border-pink-200 dark:text-pink-400 dark:border-pink-800">
             Trusted by 10,000+ women worldwide
           </Badge>
-          <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+          <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-pink-600 to-purple-600 dark:from-pink-400 dark:to-purple-400 bg-clip-text text-transparent">
             Take Control of Your
             <br />
             Menstrual Health
           </h2>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto dark:text-gray-300">
             FlowCare is your comprehensive companion for period tracking, health insights, and wellness support. 
             Understand your body better with personalized analytics and guided wellness programs.
           </p>
           <div className="flex items-center justify-center space-x-4">
-            <Button size="lg" onClick={() => navigate('/auth')} className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600">
+            <Button size="lg" onClick={() => navigate('/auth')} className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 dark:from-pink-600 dark:to-purple-600 dark:hover:from-pink-700 dark:hover:to-purple-700">
               Start Tracking for Free
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
@@ -104,8 +104,8 @@ const LandingPage = () => {
       {/* Features Section */}
       <section className="container mx-auto px-4 py-20">
         <div className="text-center mb-16">
-          <h3 className="text-3xl font-bold mb-4">Everything You Need in One App</h3>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <h3 className="text-3xl font-bold mb-4 dark:text-white">Everything You Need in One App</h3>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto dark:text-gray-300">
             From cycle tracking to wellness support, FlowCare provides comprehensive tools for your menstrual health journey.
           </p>
         </div>
@@ -114,14 +114,14 @@ const LandingPage = () => {
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (
-              <Card key={index} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setActiveFeature(index)}>
+              <Card key={index} className="hover:shadow-lg transition-shadow cursor-pointer dark:bg-gray-800/50 dark:border-gray-700 dark:hover:shadow-gray-900/20" onClick={() => setActiveFeature(index)}>
                 <CardHeader className="text-center">
                   <div className="text-4xl mb-4">{feature.image}</div>
-                  <Icon className="w-8 h-8 mx-auto mb-4 text-pink-600" />
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
+                  <Icon className="w-8 h-8 mx-auto mb-4 text-pink-600 dark:text-pink-400" />
+                  <CardTitle className="text-lg dark:text-white">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground text-center">{feature.description}</p>
+                  <p className="text-sm text-muted-foreground text-center dark:text-gray-300">{feature.description}</p>
                 </CardContent>
               </Card>
             );
@@ -130,46 +130,46 @@ const LandingPage = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="container mx-auto px-4 py-20 bg-white/50 rounded-3xl mx-4">
+      <section className="container mx-auto px-4 py-20 bg-white/50 dark:bg-gray-900/50 rounded-3xl mx-4 backdrop-blur-sm">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
-            <h3 className="text-3xl font-bold mb-6">Why Choose FlowCare?</h3>
+            <h3 className="text-3xl font-bold mb-6 dark:text-white">Why Choose FlowCare?</h3>
             <div className="space-y-6">
               <div className="flex items-start space-x-4">
-                <div className="bg-pink-100 p-2 rounded-lg">
-                  <Shield className="w-6 h-6 text-pink-600" />
+                <div className="bg-pink-100 dark:bg-pink-900/30 p-2 rounded-lg">
+                  <Shield className="w-6 h-6 text-pink-600 dark:text-pink-400" />
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-2">Privacy First</h4>
-                  <p className="text-muted-foreground">Your data is encrypted and never shared. Complete control over your information.</p>
+                  <h4 className="font-semibold mb-2 dark:text-white">Privacy First</h4>
+                  <p className="text-muted-foreground dark:text-gray-300">Your data is encrypted and never shared. Complete control over your information.</p>
                 </div>
               </div>
               <div className="flex items-start space-x-4">
-                <div className="bg-purple-100 p-2 rounded-lg">
-                  <Target className="w-6 h-6 text-purple-600" />
+                <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-lg">
+                  <Target className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-2">Personalized Insights</h4>
-                  <p className="text-muted-foreground">AI-powered analytics provide unique insights tailored to your body.</p>
+                  <h4 className="font-semibold mb-2 dark:text-white">Personalized Insights</h4>
+                  <p className="text-muted-foreground dark:text-gray-300">AI-powered analytics provide unique insights tailored to your body.</p>
                 </div>
               </div>
               <div className="flex items-start space-x-4">
-                <div className="bg-teal-100 p-2 rounded-lg">
-                  <Smartphone className="w-6 h-6 text-teal-600" />
+                <div className="bg-teal-100 dark:bg-teal-900/30 p-2 rounded-lg">
+                  <Smartphone className="w-6 h-6 text-teal-600 dark:text-teal-400" />
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-2">Easy to Use</h4>
-                  <p className="text-muted-foreground">Intuitive interface designed with women's needs in mind.</p>
+                  <h4 className="font-semibold mb-2 dark:text-white">Easy to Use</h4>
+                  <p className="text-muted-foreground dark:text-gray-300">Intuitive interface designed with women's needs in mind.</p>
                 </div>
               </div>
             </div>
           </div>
-          <div className="bg-gradient-to-br from-pink-100 to-purple-100 p-8 rounded-2xl">
+          <div className="bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-900/20 dark:to-purple-900/20 p-8 rounded-2xl backdrop-blur-sm">
             <div className="text-center">
-              <Calendar className="w-24 h-24 mx-auto mb-6 text-pink-600" />
-              <h4 className="text-xl font-semibold mb-4">Start Your Journey Today</h4>
-              <p className="text-muted-foreground mb-6">Join thousands of women who have transformed their menstrual health experience.</p>
-              <Button onClick={() => navigate('/auth')} className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600">
+              <Calendar className="w-24 h-24 mx-auto mb-6 text-pink-600 dark:text-pink-400" />
+              <h4 className="text-xl font-semibold mb-4 dark:text-white">Start Your Journey Today</h4>
+              <p className="text-muted-foreground dark:text-gray-300 mb-6">Join thousands of women who have transformed their menstrual health experience.</p>
+              <Button onClick={() => navigate('/auth')} className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 dark:from-pink-600 dark:to-purple-600 dark:hover:from-pink-700 dark:hover:to-purple-700">
                 Get Started Now
               </Button>
             </div>
@@ -180,21 +180,21 @@ const LandingPage = () => {
       {/* Testimonials */}
       <section className="container mx-auto px-4 py-20">
         <div className="text-center mb-16">
-          <h3 className="text-3xl font-bold mb-4">What Our Users Say</h3>
-          <p className="text-lg text-muted-foreground">Real experiences from real women</p>
+          <h3 className="text-3xl font-bold mb-4 dark:text-white">What Our Users Say</h3>
+          <p className="text-lg text-muted-foreground dark:text-gray-300">Real experiences from real women</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {testimonials.map((testimonial, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow">
+            <Card key={index} className="hover:shadow-lg transition-shadow dark:bg-gray-800/50 dark:border-gray-700 dark:hover:shadow-gray-900/20">
               <CardContent className="p-6">
                 <div className="flex items-center mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
-                <p className="text-muted-foreground mb-4">"{testimonial.text}"</p>
-                <p className="font-semibold">{testimonial.name}</p>
+                <p className="text-muted-foreground dark:text-gray-300 mb-4">"{testimonial.text}"</p>
+                <p className="font-semibold dark:text-white">{testimonial.name}</p>
               </CardContent>
             </Card>
           ))}
@@ -203,10 +203,10 @@ const LandingPage = () => {
 
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-20 text-center">
-        <div className="bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-3xl p-12">
+        <div className="bg-gradient-to-r from-pink-600 to-purple-600 dark:from-pink-700 dark:to-purple-700 text-white rounded-3xl p-12">
           <h3 className="text-3xl font-bold mb-4">Ready to Transform Your Health Journey?</h3>
           <p className="text-xl mb-8 opacity-90">Join FlowCare today and take the first step towards better menstrual health.</p>
-          <Button size="lg" variant="secondary" onClick={() => navigate('/auth')} className="bg-white text-pink-600 hover:bg-gray-100">
+          <Button size="lg" variant="secondary" onClick={() => navigate('/auth')} className="bg-white text-pink-600 hover:bg-gray-100 dark:bg-gray-100 dark:text-pink-700 dark:hover:bg-white">
             Start Your Free Journey
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
@@ -214,13 +214,13 @@ const LandingPage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="container mx-auto px-4 py-8 border-t">
+      <footer className="container mx-auto px-4 py-8 border-t dark:border-gray-700">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Calendar className="w-6 h-6 text-pink-600" />
-            <span className="font-semibold">FlowCare</span>
+            <Calendar className="w-6 h-6 text-pink-600 dark:text-pink-400" />
+            <span className="font-semibold dark:text-white">FlowCare</span>
           </div>
-          <p className="text-sm text-muted-foreground">© 2024 FlowCare. Made with ❤️ for women everywhere.</p>
+          <p className="text-sm text-muted-foreground dark:text-gray-400">© 2024 FlowCare. Made with ❤️ for women everywhere.</p>
         </div>
       </footer>
     </div>
