@@ -220,7 +220,7 @@ const LandingPage = () => {
             <Calendar className="w-6 h-6 text-pink-600 dark:text-pink-400" />
             <span className="font-semibold dark:text-white">FlowCare</span>
           </div>
-          <p className="text-sm text-muted-foreground dark:text-gray-400">© 2024 FlowCare. Made with ❤️ for women everywhere.</p>
+          <p className="text-sm text-muted-foreground dark:text-gray-400">© 2025 FlowCare. Made By Students Of Mid-West University, Surkhet❤️ for women everywhere.</p>
         </div>
       </footer>
     </div>
